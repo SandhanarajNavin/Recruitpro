@@ -89,8 +89,36 @@ Open <http://localhost:3000> and sign in as `recruiter@example.com` / `recruiter
 
 ### Optional: a Celery worker
 
-By default the API enqueues to Redis and falls back to inline execution if the broker
-is unreachable, so nothing is required to get started. To run a real worker:
+Nothing is required to get started. Dispatch pings for a live worker before queueing
+and runs the task inline when none answers, so uploads work either way — a resume can
+never strand at "queued" because a worker was not running.
+
+What the worker buys is bulk upload. Parsing and embedding one resume costs ~6s
+against Vertex, and inline that is charged to the HTTP request: twenty files is a
+two-minute upload that a proxy or browser will cut off. Queued, the same upload
+returns in ~0.2s and the worker drains the backlog in the background, which the
+existing per-file status polling already displays.
+
+```bash
+docker compose up -d worker
+```
+
+Measured on ten resumes, concurrency 4:
+
+| | upload request | ingestion |
+|---|---|---|
+| inline (`TASK_ALWAYS_EAGER=true`) | ~61 s — blocks, times out | — |
+| queued, worker running | **0.24 s** | 18 s in the background |
+
+The worker mounts two things from the host: `backend/uploads`, because
+`STORAGE_BACKEND=local` means the API writes a file the worker reads back by path,
+and your gcloud config, so it can reach Vertex with your Application Default
+Credentials. Point `GCLOUD_CONFIG_DIR` in the root `.env` at that directory
+(`%APPDATA%/gcloud` on Windows, `~/.config/gcloud` elsewhere) and set
+`WORKER_CONCURRENCY` to taste — ingestion waits on Vertex, so it can exceed cores.
+
+To run it on the host instead of in Docker (Windows needs `--pool=solo`, which means
+one resume at a time):
 
 ```bash
 cd backend && .venv/Scripts/python.exe -m celery -A app.workers.celery_app.celery_app worker --loglevel=info --pool=solo

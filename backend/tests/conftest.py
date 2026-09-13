@@ -25,6 +25,7 @@ def _no_model_calls(monkeypatch):
     """
     from app.ai.embeddings import embedding_service
     from app.core.config import settings
+    from app.workers import dispatch
 
     monkeypatch.setattr(type(settings), "llm_available", property(lambda _self: False))
 
@@ -36,6 +37,17 @@ def _no_model_calls(monkeypatch):
     # by earlier work in the same process cannot leak in.
     monkeypatch.setattr(settings, "embedding_provider", "offline")
     monkeypatch.setattr(settings, "embedding_model", "offline-hashing-v1")
+
+    # Third switch, same reasoning. `.env` now ships TASK_ALWAYS_EAGER=false so bulk
+    # uploads are queued rather than run in the request. A developer with a worker
+    # running would otherwise have the suite hand ingestion to *that* worker: it has
+    # its own session and its own settings, so the test's transaction never sees the
+    # result, and the work lands against real Vertex in a container. Tasks run in the
+    # test process, which is what every assertion here already assumes.
+    monkeypatch.setattr(settings, "task_always_eager", True)
+    dispatch.reset_worker_probe()
+
     embedding_service.reset_embedder()
     yield
     embedding_service.reset_embedder()
+    dispatch.reset_worker_probe()

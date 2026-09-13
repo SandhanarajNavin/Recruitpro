@@ -31,5 +31,61 @@ services:
       timeout: 3s
       retries: 10
 
+  # Ingestion runs here instead of inside the upload request. Parsing and embedding
+  # one resume costs ~6s against Vertex, so twenty files inline is a two-minute HTTP
+  # request; queued, the upload returns in ~0.2s and this drains the backlog.
+  worker:
+    build:
+      context: ./backend
+    container_name: recruitment-worker
+    # Prefork, not the --pool=solo the README gives for running on Windows directly:
+    # in Linux this can actually work on several resumes at once, and ingestion is
+    # dominated by waiting on Vertex rather than by local CPU.
+    command:
+      - python
+      - -m
+      - celery
+      - -A
+      - app.workers.celery_app.celery_app
+      - worker
+      - --loglevel=info
+      - --concurrency=${WORKER_CONCURRENCY:-4}
+    env_file:
+      - ./backend/.env
+    environment:
+      # backend/.env addresses the host ports, which do not exist inside this
+      # network. `environment` wins over `env_file`, so these replace them.
+      DATABASE_URL: postgresql+psycopg://recruitment:recruitment@db:5432/recruitment
+      REDIS_URL: redis://redis:6379/0
+      # A worker that queued its own work would never do any.
+      TASK_ALWAYS_EAGER: "false"
+      GOOGLE_APPLICATION_CREDENTIALS: /gcloud/application_default_credentials.json
+    volumes:
+      # STORAGE_BACKEND=local means the API writes the file and the worker reads it
+      # back by path. They must be the same directory or every task fails on a
+      # missing file, so this mount is load-bearing, not a convenience.
+      - ./backend/uploads:/srv/uploads
+      # Application Default Credentials from the host, read-only. Set GCLOUD_CONFIG_DIR
+      # in the root .env; it is %APPDATA%/gcloud on Windows, ~/.config/gcloud elsewhere.
+      - ${GCLOUD_CONFIG_DIR:-~/.config/gcloud}:/gcloud:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    # The image is the API's, whose HEALTHCHECK curls /health on port 8000. A worker
+    # serves no HTTP, so that check can only ever fail — it has to be replaced rather
+    # than inherited. Asking the worker to answer its own ping tests the thing that
+    # actually matters: that it is connected to the broker and consuming.
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - celery -A app.workers.celery_app.celery_app inspect ping -t 5 || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
 volumes:
   db-data:
