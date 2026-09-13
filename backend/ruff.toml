@@ -1,0 +1,14 @@
+line-length = 100
+target-version = "py311"
+
+[lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["B008"]
+
+[lint.per-file-ignores]
+# Generated from frontend/lib/sample-data.ts — resume bodies are single long strings.
+"scripts/seed_data.py" = ["E501"]
+# Package facades deliberately re-export names they do not themselves use.
+"app/**/__init__.py" = ["F401"]
+# Alembic writes these; they are not hand-maintained source.
+"migrations/versions/*.py" = ["E501"]

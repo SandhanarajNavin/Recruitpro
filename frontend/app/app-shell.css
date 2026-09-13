@@ -1,0 +1,3516 @@
+/* ==========================================================================
+   V1 app shell — navigation, repository tables, funnel, evidence, overrides.
+   Reuses the tokens and the .panel / .btn / .tag / .rec-pill vocabulary that
+   globals.css already establishes; this file only adds what the new routes need.
+   ========================================================================== */
+
+/* ---------- navigation ---------- */
+
+.navbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 18px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: baseline;
+  gap: 26px;
+  flex-wrap: wrap;
+}
+
+.brand {
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.navlinks {
+  display: flex;
+  gap: 4px;
+}
+
+.navlink {
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 13.5px;
+}
+
+.navlink:hover {
+  color: var(--text);
+  background: var(--bg-elevated);
+}
+
+.navlink-on {
+  color: var(--text);
+  background: var(--accent-soft);
+}
+
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.navbar-name {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ---------- login ---------- */
+
+.login-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.login-panel {
+  width: min(420px, 100%);
+}
+
+.login-panel h1 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.login-panel .panel-body {
+  display: grid;
+  gap: 6px;
+}
+
+.login-panel input {
+  background: var(--bg-input);
+  border: 1px solid var(--panel-border-strong);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+/* Sign-in <-> sign-up switch under the submit button. */
+.auth-switch {
+  margin: 12px 0 0;
+  text-align: center;
+}
+
+.auth-switch a {
+  color: var(--accent, #6ea8fe);
+  text-decoration: none;
+}
+
+.auth-switch a:hover {
+  text-decoration: underline;
+}
+
+.login-panel .btn-primary {
+  margin-top: 14px;
+}
+
+/* ---------- stats ---------- */
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.stat {
+  background: var(--bg-elevated);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  display: grid;
+  gap: 2px;
+}
+
+.stat-value {
+  font-family: var(--mono);
+  font-size: 26px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 0.07em;
+}
+
+.stat-bad .stat-value {
+  color: var(--bad);
+}
+
+/* ---------- pipeline list + weights ---------- */
+
+.pipeline-list {
+  list-style: none;
+  counter-reset: step;
+  margin: 0 0 18px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.pipeline-list li {
+  counter-increment: step;
+  display: grid;
+  grid-template-columns: 26px 1fr;
+  gap: 10px;
+  align-items: baseline;
+  font-size: 13.5px;
+}
+
+.pipeline-list li::before {
+  content: counter(step);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  border: 1px solid var(--panel-border-strong);
+  border-radius: 5px;
+  padding: 1px 0;
+  text-align: center;
+}
+
+.pipeline-list li span {
+  color: var(--text-muted);
+  display: block;
+  font-size: 12.5px;
+}
+
+.weight-list {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.weight-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.weight-row span:first-child {
+  color: var(--text-muted);
+  text-transform: capitalize;
+}
+
+.weight-value {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.job-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.job-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.job-list a,
+.empty-state a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.job-list a:hover,
+.empty-state a:hover {
+  text-decoration: underline;
+}
+
+/* ---------- dropzone / uploads ---------- */
+
+.dropzone {
+  border: 1.5px dashed var(--panel-border-strong);
+  border-radius: var(--radius);
+  padding: 30px 20px;
+  text-align: center;
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.dropzone-active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.dropzone p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13.5px;
+}
+
+.upload-list {
+  margin-top: 16px;
+  display: grid;
+  gap: 6px;
+}
+
+.upload-summary {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-muted);
+  padding-bottom: 6px;
+}
+
+.upload-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--panel-border);
+  font-size: 13px;
+}
+
+.upload-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.upload-error {
+  flex: 1 1 100%;
+  color: var(--bad);
+  font-size: 12px;
+}
+
+/* ---------- status badges ---------- */
+
+.status-badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--panel-border-strong);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.status-ready {
+  color: var(--good);
+  border-color: rgba(78, 201, 160, 0.4);
+  background: rgba(78, 201, 160, 0.1);
+}
+
+.status-failed {
+  color: var(--bad);
+  border-color: rgba(232, 116, 138, 0.4);
+  background: rgba(232, 116, 138, 0.1);
+}
+
+.status-working {
+  color: var(--warn);
+  border-color: rgba(229, 180, 92, 0.4);
+  background: rgba(229, 180, 92, 0.1);
+}
+
+.mode-live .dot {
+  background: var(--good);
+}
+
+.mode-offline .dot {
+  background: var(--neutral);
+}
+
+/* ---------- filters + tables ---------- */
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.filter-bar input {
+  background: var(--bg-input);
+  border: 1px solid var(--panel-border-strong);
+  border-radius: var(--radius-sm);
+  padding: 8px 11px;
+  min-width: 150px;
+}
+
+.filter-bar input[type="number"] {
+  max-width: 120px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  min-width: 640px;
+}
+
+.data-table th,
+.data-table td {
+  text-align: left;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--panel-border);
+  vertical-align: top;
+}
+
+.data-table thead th {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+  font-weight: 500;
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.data-table tbody tr:hover {
+  background: rgba(110, 168, 254, 0.04);
+}
+
+.data-table a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.data-table a:hover {
+  text-decoration: underline;
+}
+
+.data-table .numeric {
+  text-align: right;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.cell-sub {
+  font-size: 12px;
+  color: var(--text-faint);
+  margin-top: 2px;
+}
+
+.pager {
+  margin-top: 14px;
+}
+
+.tag-more {
+  color: var(--text-faint);
+}
+
+.tag-good {
+  color: var(--good);
+  border-color: rgba(78, 201, 160, 0.35);
+}
+
+.tag-bad {
+  color: var(--bad);
+  border-color: rgba(232, 116, 138, 0.35);
+}
+
+.tag-critical {
+  color: var(--warn);
+  border-color: rgba(229, 180, 92, 0.55);
+  background: rgba(229, 180, 92, 0.12);
+}
+
+/* ---------- funnel ---------- */
+
+.funnel {
+  display: grid;
+  gap: 10px;
+}
+
+.funnel-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 190px) 1fr 64px;
+  gap: 14px;
+  align-items: center;
+}
+
+.funnel-label strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 550;
+}
+
+.funnel-engine {
+  font-size: 11.5px;
+  color: var(--text-faint);
+}
+
+.funnel-track {
+  background: var(--bg-input);
+  border-radius: 5px;
+  height: 24px;
+  overflow: hidden;
+}
+
+.funnel-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-strong), var(--accent));
+  border-radius: 5px;
+  transition: width 0.4s ease;
+}
+
+.funnel-bar-pool {
+  background: linear-gradient(90deg, #2f7d6b, var(--good));
+}
+
+.funnel-count {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* ---------- score breakdown ---------- */
+
+.dimension-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.dimension-name {
+  font-size: 12.5px;
+}
+
+.dimension-weight,
+.dimension-score,
+.dimension-contribution {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+}
+
+.dimension-numbers {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2px;
+}
+
+.dimension-score {
+  color: var(--text-muted);
+}
+
+.dimension-contribution {
+  color: var(--accent);
+}
+
+.bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: inherit;
+  transition: width 0.3s ease;
+}
+
+.breakdown-total {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--panel-border);
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.breakdown-sum {
+  font-family: var(--mono);
+  font-size: 15px;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.breakdown-warn {
+  color: var(--warn);
+  font-size: 11.5px;
+}
+
+/* ---------- explanation + evidence ---------- */
+
+.explanation {
+  margin-top: 18px;
+}
+
+.why h4 {
+  margin: 0 0 8px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+}
+
+.why ul {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.why-match li::marker {
+  color: var(--good);
+}
+
+.why-not li::marker {
+  color: var(--bad);
+}
+
+.skill-lists {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.evidence-group {
+  border-top: 1px solid var(--panel-border);
+  padding-top: 12px;
+  margin-top: 12px;
+}
+
+.evidence-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  letter-spacing: 0.07em;
+  color: var(--text-faint);
+}
+
+.evidence-score {
+  font-family: var(--mono);
+  color: var(--text-muted);
+}
+
+.evidence ul {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.evidence li {
+  display: grid;
+  grid-template-columns: 62px 1fr;
+  gap: 8px 10px;
+  font-size: 12.5px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.verdict-mark {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.met .verdict-mark {
+  color: var(--good);
+}
+
+.unmet .verdict-mark {
+  color: var(--bad);
+}
+
+.verdict-req {
+  font-weight: 550;
+}
+
+.verdict-conf,
+.verdict-quote {
+  grid-column: 2;
+  color: var(--text-faint);
+  font-size: 11.5px;
+}
+
+.verdict-quote {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.verdict-none {
+  color: var(--bad);
+  font-style: normal;
+}
+
+.rec-override {
+  margin-left: 6px;
+  font-size: 10px;
+  opacity: 0.8;
+}
+
+/* ---------- override ---------- */
+
+.override {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--panel-border);
+}
+
+.override-form {
+  margin-top: 10px;
+  display: grid;
+  gap: 10px;
+}
+
+.override-form input {
+  background: var(--bg-input);
+  border: 1px solid var(--panel-border-strong);
+  border-radius: var(--radius-sm);
+  padding: 8px 11px;
+  width: 100%;
+}
+
+/* ---------- job detail / new job ---------- */
+
+.field-pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.field-pair input {
+  background: var(--bg-input);
+  border: 1px solid var(--panel-border-strong);
+  border-radius: var(--radius-sm);
+  padding: 8px 11px;
+  width: 100%;
+}
+
+.jd-text {
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.hard-filters {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.hard-filters > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  padding: 7px 10px;
+  background: var(--bg-input);
+  border-radius: var(--radius-sm);
+}
+
+.hard-filters span {
+  color: var(--text-muted);
+}
+
+.char-count {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--text-faint);
+  margin: 6px 0 14px;
+}
+
+/* ---------- candidate detail ---------- */
+
+.plain-list {
+  margin: 0 0 14px;
+  padding-left: 18px;
+  display: grid;
+  gap: 5px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.resume-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.resume-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--panel-border);
+  font-size: 13px;
+}
+
+/* ---------- misc ---------- */
+
+.warn-banner {
+  background: rgba(229, 180, 92, 0.1);
+  border: 1px solid rgba(229, 180, 92, 0.4);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  font-size: 13px;
+}
+
+.warn-banner ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+
+.lede {
+  font-size: 15px;
+  color: var(--text-muted);
+  max-width: 78ch;
+  margin: 0 0 20px;
+}
+
+.footnote {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--panel-border);
+  font-size: 12.5px;
+  color: var(--text-faint);
+  max-width: 80ch;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12.5px;
+  /* .btn-primary is full-width because it is the form submit button; a small
+     button in a table row or list must size to its own label. */
+  width: auto;
+}
+
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.error-banner ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  flex: 1 1 100%;
+}
+
+@media (max-width: 720px) {
+  .funnel-row {
+    grid-template-columns: 1fr 56px;
+  }
+
+  .funnel-track {
+    grid-column: 1 / -1;
+    order: 3;
+  }
+}
+
+/* ==========================================================================
+   Sidebar shell (dashboard redesign)
+   ========================================================================== */
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+/* ---------- sidebar ---------- */
+
+.sidebar {
+  width: var(--sidebar-width);
+  flex: 0 0 var(--sidebar-width);
+  background: var(--sidebar);
+  color: var(--sidebar-text);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px 12px 18px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 8px 18px;
+}
+
+.sidebar-logo {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--sidebar-text);
+  flex: none;
+}
+
+.sidebar-brand-text {
+  display: grid;
+  line-height: 1.25;
+  min-width: 0;
+}
+
+.sidebar-brand-text strong {
+  font-size: 15.5px;
+  letter-spacing: -0.01em;
+}
+
+.sidebar-brand-text small {
+  color: var(--sidebar-muted);
+  font-size: 11.5px;
+}
+
+.sidebar-account {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-sm);
+  background: var(--sidebar-deep);
+  min-width: 0;
+}
+
+.sidebar-account-label {
+  font-size: 10.5px;
+  letter-spacing: 0.07em;
+  color: var(--sidebar-muted);
+}
+
+.sidebar-account-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-nav {
+  display: grid;
+  gap: 3px;
+}
+
+.sidenav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--sidebar-muted);
+  text-decoration: none;
+  font-size: 13px;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.sidenav-item:hover {
+  background: var(--sidebar-hover);
+  color: var(--sidebar-text);
+}
+
+.sidenav-item-on {
+  background: var(--sidebar-active);
+  color: #fff;
+  font-weight: 600;
+}
+
+.sidebar-scrim {
+  display: none;
+  border: 0;
+  padding: 0;
+}
+
+/* ---------- main column ---------- */
+
+.app-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  height: var(--topbar-height);
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 18px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--panel-border);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.topbar-burger {
+  display: none;
+}
+
+.topbar-title {
+  margin: 0;
+  font-size: 16.5px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.icon-btn {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.icon-btn:hover {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.topbar-user {
+  position: relative;
+}
+
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 10px 5px 5px;
+  border-radius: 999px;
+  border: 1px solid var(--panel-border);
+  background: var(--bg-elevated);
+  color: var(--text);
+}
+
+.user-chip:hover {
+  border-color: var(--panel-border-strong);
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 29px;
+  height: 29px;
+  border-radius: 50%;
+  background: var(--sidebar);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  flex: none;
+}
+
+.user-chip-text {
+  display: grid;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.user-chip-text strong {
+  font-size: 13.5px;
+}
+
+.user-chip-text small {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  text-transform: capitalize;
+}
+
+.user-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  min-width: 210px;
+  display: grid;
+  gap: 4px;
+  padding: 8px;
+  border-radius: var(--radius);
+  border: 1px solid var(--panel-border);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow);
+  z-index: 30;
+}
+
+.user-menu-email {
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-menu button {
+  text-align: left;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.user-menu button:hover {
+  background: var(--bg);
+}
+
+.app-content {
+  flex: 1 1 auto;
+  padding: 14px 16px;
+  max-width: 1560px;
+  width: 100%;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 1000px) {
+  .sidebar {
+    position: fixed;
+    z-index: 40;
+    transform: translateX(-100%);
+    transition: transform 0.18s ease;
+  }
+
+  .app-shell-nav-open .sidebar {
+    transform: translateX(0);
+  }
+
+  .app-shell-nav-open .sidebar-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    background: rgba(16, 27, 49, 0.45);
+  }
+
+  .topbar-burger {
+    display: grid;
+  }
+
+  .user-chip-text {
+    display: none;
+  }
+
+  .app-content {
+    padding: 16px;
+  }
+}
+
+/* ==========================================================================
+   Dashboard
+   ========================================================================== */
+
+.dash-grid {
+  display: grid;
+  gap: 12px;
+}
+
+/* ---------- stat cards ---------- */
+
+.metric-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(232px, 1fr));
+  gap: 20px;
+}
+
+.metric-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  border-radius: var(--radius);
+  border: 1px solid var(--panel-border);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-sm);
+}
+
+.metric-icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 13px;
+  background: var(--sidebar);
+  color: #fff;
+  flex: none;
+}
+
+.metric-body {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.metric-label {
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+
+.metric-value {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--text);
+}
+
+.metric-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.metric-delta-up {
+  color: var(--good);
+}
+
+.metric-delta-down {
+  color: var(--bad);
+}
+
+/* No prior window to compare against - shown muted rather than as "0%", which
+   would read as "no change" when the truth is "no basis for comparison". */
+.metric-delta-none {
+  color: var(--text-faint);
+  font-weight: 500;
+}
+
+/* ---------- panels ---------- */
+
+.panel-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  border-radius: var(--radius);
+  border: 1px solid var(--panel-border);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.card-head h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.card-link {
+  font-size: 13.5px;
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 550;
+}
+
+.card-link:hover {
+  text-decoration: underline;
+}
+
+.card-body {
+  padding: 13px 14px;
+  flex: 1 1 auto;
+}
+
+/* ---------- donut ---------- */
+
+.donut-layout {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.donut-figure {
+  position: relative;
+  width: 210px;
+  height: 210px;
+  flex: none;
+}
+
+.donut-centre {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  pointer-events: none;
+}
+
+.donut-centre strong {
+  display: block;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.donut-centre span {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.legend {
+  display: grid;
+  gap: 11px;
+  flex: 1 1 190px;
+  min-width: 170px;
+}
+
+.legend-row {
+  display: grid;
+  grid-template-columns: 12px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.legend-name {
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.legend-value {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- lists ---------- */
+
+.job-list {
+  display: grid;
+  gap: 4px;
+}
+
+.job-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 8px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: inherit;
+}
+
+.job-row:hover {
+  background: var(--bg);
+}
+
+.job-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  flex: none;
+}
+
+.job-text {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.job-title {
+  font-size: 14.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.job-meta {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.job-matches {
+  text-align: right;
+  flex: none;
+}
+
+.job-matches strong {
+  display: block;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1.2;
+}
+
+.job-matches span {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+/* ---------- matched table ---------- */
+
+.matched-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+.matched-table th {
+  text-align: left;
+  font-weight: 550;
+  color: var(--text-muted);
+  font-size: 12.5px;
+  padding: 0 8px 12px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.matched-table td {
+  padding: 12px 8px;
+  border-bottom: 1px solid var(--panel-border);
+  vertical-align: middle;
+}
+
+.matched-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.who {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+  /* The whole row is one anchor; without this the browser underlines the avatar
+     initials and the role sub-line as well as the name. */
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Only the name reads as the link, and only on hover. */
+.who:hover .who-name { text-decoration: underline; }
+
+.who .avatar {
+  width: 36px;
+  height: 36px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.who-text {
+  display: grid;
+  min-width: 0;
+}
+
+.who-name {
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.who-id {
+  font-size: 11.5px;
+  color: var(--text-faint);
+  font-family: var(--mono);
+}
+
+.score-pill {
+  display: inline-block;
+  min-width: 52px;
+  text-align: center;
+  padding: 4px 9px;
+  border-radius: 6px;
+  background: var(--sidebar);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.dash-empty {
+  padding: 28px 8px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13.5px;
+}
+
+@media (max-width: 560px) {
+  .metric-value {
+    font-size: 25px;
+  }
+
+  .donut-figure {
+    width: 170px;
+    height: 170px;
+  }
+}
+
+/* ---------- password field with show/hide ---------- */
+
+.password-field {
+  position: relative;
+  display: block;
+}
+
+/* The wrapper inherits the spacing the bare input used to carry, so the toggle
+   can be absolutely positioned without the field losing its rhythm. */
+.password-field input {
+  width: 100%;
+  padding-right: 42px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0;
+  /* Stretched between the top of the input and the top of its 8px bottom margin,
+     rather than given a fixed height. The input is sized by padding and
+     line-height, so any hard-coded value drifts the moment the font changes. */
+  top: 0;
+  bottom: 8px;
+  width: 40px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: var(--text-faint);
+  border-radius: var(--radius-sm);
+}
+
+.password-toggle:hover {
+  color: var(--text);
+}
+
+.password-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* ==========================================================================
+   Recruiter assistant
+   ========================================================================== */
+
+.chat-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 20px;
+  /* Fill the viewport below the top bar so the composer sits at the bottom
+     rather than floating after short transcripts. */
+  height: calc(100vh - var(--topbar-height) - 48px);
+  min-height: 460px;
+}
+
+.chat-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.chat-new {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.chat-history {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.chat-history-item {
+  text-align: left;
+  padding: 9px 11px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-history-item:hover { background: var(--bg-elevated); color: var(--text); }
+.chat-history-on { background: var(--accent-soft); color: var(--accent-strong); font-weight: 600; }
+
+.chat-main {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-sm);
+}
+
+.chat-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chat-intro { margin: auto 0; text-align: center; padding: 0 12px; }
+.chat-intro h2 { margin: 0 0 8px; font-size: 19px; }
+.chat-intro p { margin: 0 auto 20px; max-width: 54ch; color: var(--text-muted); font-size: 14px; }
+
+.chat-suggestions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px;
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+.chat-suggestions button {
+  padding: 11px 13px;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  text-align: left;
+  line-height: 1.4;
+}
+
+.chat-suggestions button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent-strong); }
+.chat-suggestions button:disabled { opacity: 0.5; }
+
+.chat-row { display: flex; }
+.chat-row-user { justify-content: flex-end; }
+
+.bubble {
+  max-width: 74%;
+  padding: 11px 15px;
+  border-radius: 14px;
+  background: var(--bg);
+  border: 1px solid var(--panel-border);
+  font-size: 14.5px;
+  line-height: 1.55;
+}
+
+.bubble p { margin: 0 0 8px; }
+.bubble p:last-child { margin-bottom: 0; }
+
+.bubble-user {
+  background: var(--sidebar);
+  border-color: var(--sidebar);
+  color: #fff;
+}
+
+.bubble-thinking { display: flex; align-items: center; gap: 6px; color: var(--text-muted); }
+.bubble-thinking em { font-style: normal; font-size: 13px; margin-left: 4px; }
+
+/* Scoped to the thinking bubble: `.dot` is already the ModeChip indicator in
+   globals.css, and a bare rule here would resize and animate that too. */
+.bubble-thinking .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-faint);
+  animation: chat-pulse 1.3s ease-in-out infinite;
+}
+.bubble-thinking .dot:nth-child(2) { animation-delay: 0.18s; }
+.bubble-thinking .dot:nth-child(3) { animation-delay: 0.36s; }
+
+@keyframes chat-pulse {
+  0%, 100% { opacity: 0.3; }
+  50%      { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bubble-thinking .dot { animation: none; opacity: 0.6; }
+}
+
+/* A tool run is shown, not hidden: a recruiter must be able to see that the
+   assistant changed something. */
+.chat-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-family: var(--mono);
+  font-size: 11.5px;
+}
+
+.chat-compose {
+  display: flex;
+  gap: 10px;
+  padding: 14px 16px;
+  border-top: 1px solid var(--panel-border);
+}
+
+.chat-compose input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--panel-border-strong);
+  border-radius: 999px;
+  background: var(--bg-input);
+  color: var(--text);
+  font-size: 14.5px;
+}
+
+.chat-compose input:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
+/* The send button sizes to its icon so the input keeps the rest of the row;
+   .btn-primary is width:100% by default for full-width form submits. */
+.chat-compose .btn {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+}
+
+@media (max-width: 900px) {
+  .chat-layout { grid-template-columns: 1fr; height: auto; }
+  .chat-side { flex-direction: row; align-items: center; }
+  .chat-history { flex-direction: row; overflow-x: auto; }
+  .chat-history-item { white-space: nowrap; }
+  .chat-scroll { min-height: 52vh; }
+  .bubble { max-width: 88%; }
+}
+
+/* ==========================================================================
+   Dashboard v2 — greeting, stat tiles, listing tables
+   ========================================================================== */
+
+.dash-hello {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.dash-hello h2 {
+  margin: 0 0 3px;
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.dash-hello p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14.5px;
+}
+
+.dash-date {
+  color: var(--text-muted);
+  font-size: 13.5px;
+  white-space: nowrap;
+  padding-top: 6px;
+}
+
+/* ---------- stat tiles ---------- */
+
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+}
+
+.stat-tile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 13px;
+  border-radius: var(--radius);
+  border: 1px solid var(--panel-border);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Soft circular icon, not the solid navy square of the previous design. */
+.stat-tile-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  flex: none;
+}
+
+.stat-tile-body {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+/* One line each: a wrapped label makes its card taller than its neighbours, and
+   the row is only as short as its tallest member. Truncated rather than wrapped,
+   with the full text in a tooltip. */
+.stat-tile-label,
+.stat-tile-hint {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stat-tile-label {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.stat-tile-value {
+  font-size: 21px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-tile-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  margin-top: 2px;
+}
+
+.delta-up { color: var(--good); }
+.delta-down { color: var(--bad); }
+/* Muted and unweighted: absence of a comparison is not a result. */
+.delta-none { color: var(--text-faint); }
+
+.stat-tile-hint {
+  display: block;
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+/* ---------- listing tables ---------- */
+
+.card-body-flush { padding: 2px 6px 6px; }
+
+.listing {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.listing th {
+  text-align: left;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.listing td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--panel-border);
+  vertical-align: middle;
+}
+
+.listing tr:last-child td { border-bottom: 0; }
+.listing tr:hover td { background: var(--bg); }
+
+.listing .muted { color: var(--text-muted); }
+.listing .num { font-variant-numeric: tabular-nums; color: var(--text-muted); }
+.listing .chev { width: 30px; text-align: right; }
+.listing .chev a { color: var(--text-faint); display: inline-grid; place-items: center; }
+.listing .chev a:hover { color: var(--accent); }
+
+/* Chevron glyph points down by default; rotate for the row-open affordance. */
+.chev-right { transform: rotate(-90deg); }
+
+.avatar-soft {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.job-tile {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  flex: none;
+}
+
+.who-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ---------- status pills ---------- */
+
+.pill {
+  display: inline-block;
+  /* Never wrap: a two-line pill makes its row taller than every other row. */
+  white-space: nowrap;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pill-good { background: rgba(23, 145, 95, 0.12); color: var(--good); }
+.pill-info { background: var(--accent-soft); color: var(--accent-strong); }
+.pill-warn { background: rgba(180, 118, 19, 0.13); color: var(--warn); }
+.pill-bad  { background: rgba(194, 56, 76, 0.12); color: var(--bad); }
+.pill-mute { background: var(--bg); color: var(--text-muted); }
+
+/* ---------- topbar search ---------- */
+
+.topbar-search {
+  position: relative;
+  margin-left: auto;
+  max-width: 340px;
+  flex: 1 1 220px;
+}
+
+.topbar-search input {
+  width: 100%;
+  padding: 9px 12px 9px 36px;
+  border-radius: 999px;
+  border: 1px solid var(--panel-border-strong);
+  background: var(--bg-input);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.topbar-search .search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-faint);
+  pointer-events: none;
+  display: grid;
+}
+
+/* The search box gives up its space before the user chip does. */
+@media (max-width: 860px) {
+  .topbar-search { display: none; }
+}
+
+/* ---------- sidebar footer ---------- */
+
+.sidebar-foot {
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.sidebar-logout {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--sidebar-muted);
+  font-size: 14.5px;
+  text-align: left;
+}
+
+.sidebar-logout:hover { background: var(--sidebar-hover); color: var(--sidebar-text); }
+
+/* ==========================================================================
+   Shared UI vocabulary — tabs, page heads, tables, empty states, pipeline
+   ========================================================================== */
+
+.page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.page-head h2 {
+  margin: 0 0 2px;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.page-head p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.page-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.page-actions .btn { width: auto; padding: 9px 15px; }
+
+/* ---------- tabs ---------- */
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--panel-border);
+  /* Wrap rather than scroll. `overflow-x: auto` also computed overflow-y from
+     `visible` to `auto` — that is the spec's behaviour when either axis is set —
+     so the tab row grew a vertical scrollbar it had no use for. */
+  flex-wrap: wrap;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 14px;
+  border: 0;
+  /* Sits on the container's border so the active tab visually joins the panel. */
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.tab:hover { color: var(--text); }
+
+.tab-on {
+  color: var(--accent-strong);
+  border-bottom-color: var(--accent-strong);
+  font-weight: 600;
+}
+
+.tab-count {
+  font-size: 11.5px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.tab-on .tab-count { background: var(--accent-soft); color: var(--accent-strong); }
+
+/* ---------- search field ---------- */
+
+.search-field { position: relative; flex: 1 1 240px; min-width: 180px; }
+
+.search-field input {
+  width: 100%;
+  padding: 9px 12px 9px 36px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--panel-border-strong);
+  background: var(--bg-input);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.search-field .search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-faint);
+  pointer-events: none;
+  display: grid;
+}
+
+/* Wide content scrolls inside its own container so the page never scrolls
+   sideways on a narrow viewport. */
+.table-scroll { overflow-x: auto; }
+
+/* ---------- empty state ---------- */
+
+.empty {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 46px 20px;
+  text-align: center;
+}
+
+.empty-icon {
+  display: grid;
+  place-items: center;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.empty h3 { margin: 4px 0 0; font-size: 17px; font-weight: 650; }
+.empty p { margin: 0; color: var(--text-muted); font-size: 14px; max-width: 46ch; }
+.empty-action { display: flex; gap: 10px; margin-top: 6px; }
+.empty-action .btn { width: auto; padding: 9px 16px; }
+
+.empty-tips {
+  margin-top: 14px;
+  text-align: left;
+  font-size: 13px;
+  color: var(--text-muted);
+  max-width: 44ch;
+}
+
+.empty-tips span {
+  display: block;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 5px;
+}
+
+.empty-tips ul { margin: 0; padding-left: 18px; }
+.empty-tips li { margin-bottom: 3px; }
+
+/* ---------- pipeline strip ---------- */
+
+.pipeline {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0 2px;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.pipe-step {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  text-align: center;
+}
+
+.pipe-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* The rail is drawn by each step's own track, which spans the full column width
+   so consecutive steps join seamlessly. The dot sits on top of it. */
+.pipe-track {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 11px;
+}
+
+.pipe-track::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  transform: translateY(-50%);
+  background: var(--panel-border-strong);
+}
+
+/* The first and last steps stop the rail at their own dot instead of letting it
+   run off the ends of the strip. */
+.pipe-step:first-child .pipe-track::before { left: 50%; }
+.pipe-end .pipe-track::before { right: 50%; }
+
+.pipe-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  /* A stage nobody has reached is drawn hollow rather than hidden. */
+  background: var(--bg-elevated);
+  border: 2px solid var(--panel-border-strong);
+  box-sizing: border-box;
+}
+
+.pipe-on .pipe-dot {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+}
+
+.pipe-on .pipe-label { color: var(--text); }
+
+/* Hired is the outcome, not another stage — coloured to say so. */
+.pipe-end.pipe-on .pipe-dot {
+  background: var(--good);
+  border-color: var(--good);
+}
+
+.pipe-count {
+  font-size: 19px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.pipe-step:not(.pipe-on) .pipe-count { color: var(--text-faint); }
+
+@media (max-width: 780px) {
+  .pipeline { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 18px; }
+  /* Wrapped onto two rows the rail no longer describes a single sequence, so it
+     is dropped rather than left joining stages that are not adjacent. */
+  .pipe-track::before { display: none; }
+}
+
+/* ---------- dashboard: attention queue ---------- */
+
+.head-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  margin-left: 8px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--bad-soft);
+  color: var(--bad);
+  font-size: 11.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.attention-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.attention-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.attention-row:last-child { border-bottom: 0; }
+
+.attention-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.attention-title {
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--text);
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attention-title:hover { color: var(--accent-strong); }
+
+.attention-detail {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+/* ---------- notification bell ---------- */
+
+.topbar-bell { position: relative; }
+
+.bell-count {
+  position: absolute;
+  top: 1px;
+  right: 0;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--bad);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 17px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  /* Ringed in the bar colour so the badge reads as separate from the glyph. */
+  box-shadow: 0 0 0 2px var(--bg-elevated);
+}
+
+.bell-mark {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--accent-strong);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.bell-mark:hover { text-decoration: underline; }
+
+/* Reserved even when read, so rows do not shift as the dots clear. */
+.bell-unread {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-strong);
+  flex: none;
+}
+
+.bell-read { background: transparent; }
+
+.bell-title {
+  display: block;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bell-context {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bell-foot {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  border: 0;
+  border-top: 1px solid var(--panel-border);
+  background: none;
+  color: var(--accent-strong);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+}
+
+.bell-foot:hover { background: var(--accent-soft); }
+
+.bell-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  width: min(360px, calc(100vw - 32px));
+  background: var(--bg-elevated);
+  border: 1px solid var(--panel-border-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16);
+  overflow: hidden;
+}
+
+.bell-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--panel-border);
+  font-size: 13px;
+}
+
+.bell-empty {
+  margin: 0;
+  padding: 18px 14px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.bell-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 60vh;
+  overflow-y: auto;
+  /* Scrolls without showing a bar. overflow-x is pinned to hidden because a row
+     swiped out travels well past the panel: left to its own devices, overflow-y:auto
+     computes overflow-x to auto as well and the flight would become pannable. */
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.bell-list::-webkit-scrollbar { display: none; }
+
+/* Row and its remove button as one strip, so a swipe carries both. */
+.bell-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  border-bottom: 1px solid var(--panel-border);
+  /* Vertical scrolling still belongs to the list; only sideways drags are ours. */
+  touch-action: pan-y;
+}
+
+.bell-list .bell-item:last-child { border-bottom: 0; }
+
+.bell-row {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+a.bell-row:hover { background: var(--accent-soft); }
+
+.bell-dismiss {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  border: 0;
+  background: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  /* Present but quiet until wanted — and always reachable by keyboard, which the
+     swipe gesture is not. */
+  opacity: 0.45;
+  transition: opacity 120ms ease, color 120ms ease;
+}
+
+.bell-item:hover .bell-dismiss,
+.bell-dismiss:focus-visible {
+  opacity: 1;
+  color: var(--text);
+}
+
+.bell-text { min-width: 0; }
+
+.activity-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  flex: none;
+}
+
+.activity-time {
+  font-size: 12px;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+/* ---------- table action column ---------- */
+
+/* Pinned right and sized to its button, so the identity column takes the slack
+   as the card widens rather than the action drifting into the middle. */
+.listing .col-action {
+  text-align: right;
+  white-space: nowrap;
+  width: 1%;
+}
+
+/* ---------- filter row + chips + pager ---------- */
+
+.filter-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.filter-row input[type="text"],
+.filter-row input[type="number"] {
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--panel-border-strong);
+  background: var(--bg-input);
+  font-size: 14px;
+  width: auto;
+}
+
+.filter-row input[type="number"] { max-width: 130px; }
+
+.chips { display: flex; gap: 5px; flex-wrap: wrap; }
+
+.chip {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 6px;
+  border: 1px solid var(--panel-border);
+  background: var(--bg);
+  color: var(--text-muted);
+  font-size: 12px;
+  /* A parsed skill is occasionally a whole phrase — "LLM provider experience
+     (OpenAI, Gemini/Vertex AI, Anthropic, AWS Bedrock)". Kept on one line, such a
+     chip cannot shrink, so it overflowed its grid column and ran under the score
+     ring beside it. Truncating keeps the chip inside whatever holds it; the full
+     text stays available as the element's title.
+
+     min-width is load-bearing: a chip is usually a flex item, those default to
+     min-width:auto (= min-content, the whole un-wrappable string), and min-width
+     beats max-width — so without the 0 the cap below does nothing and the chip
+     still runs out past the card, which clips it mid-word. Wrapping is unaffected:
+     a flex line only shrinks an item that alone exceeds the line. */
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chip-more { color: var(--text-faint); }
+
+.card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 20px;
+  border-top: 1px solid var(--panel-border);
+  font-size: 13px;
+}
+
+.pager { display: flex; align-items: center; gap: 10px; }
+.pager .btn { width: auto; padding: 6px 13px; font-size: 13px; }
+
+/* ---------- select filters ---------- */
+
+.filter-select {
+  padding: 9px 30px 9px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--panel-border-strong);
+  background: var(--bg-input);
+  color: var(--text);
+  font-size: 13px;
+  /* Native arrow replaced with our own so the control matches the toolbar rather
+     than the operating system. */
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--text-faint) 50%),
+    linear-gradient(135deg, var(--text-faint) 50%, transparent 50%);
+  background-position: calc(100% - 16px) 52%, calc(100% - 11px) 52%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+/* Number inputs elsewhere: hide the stepper. It is the wrong visual weight for a
+   filter toolbar, and the arrows are unusable at this size anyway. */
+input[type="number"] {
+  appearance: textfield;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+/* ---------- screening results: two-column layout ---------- */
+
+.screen-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 18px;
+  align-items: start;
+}
+
+.screen-main,
+.screen-side {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+/* The sidebar rides along on tall result lists rather than scrolling away. */
+.screen-side { position: sticky; top: 16px; }
+
+@media (max-width: 1100px) {
+  .screen-layout { grid-template-columns: minmax(0, 1fr); }
+  .screen-side { position: static; }
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+  text-decoration: none;
+  width: fit-content;
+}
+
+.back-link:hover { color: var(--accent-strong); }
+
+.masthead-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 0;
+}
+
+.chev-left { transform: rotate(90deg); }
+.chev-up { transform: rotate(180deg); }
+.chev-down { transform: rotate(0deg); }
+
+/* ---------- screening overview ---------- */
+
+.overview {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.overview-step {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  /* Room on the right for the arrow that points at the next step. */
+  padding-right: 26px;
+}
+
+.overview-value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  flex: none;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 19px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.overview-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.overview-text strong { font-size: 13px; font-weight: 600; }
+.overview-text small { font-size: 12px; color: var(--good); }
+
+.overview-arrow {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-faint);
+}
+
+@media (max-width: 900px) {
+  .overview { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 16px; }
+  /* Wrapped onto two rows the arrow would point at the wrong step. */
+  .overview-arrow { display: none; }
+  .overview-step { padding-right: 0; }
+}
+
+/* ---------- AI summary ---------- */
+
+.summary-card { border-color: var(--accent-strong); }
+
+.summary-body {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: start;
+}
+
+.summary-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  flex: none;
+}
+
+.summary-text h2 { margin: 0 0 4px; font-size: 14px; }
+.summary-text p { margin: 0; font-size: 13px; color: var(--text-muted); line-height: 1.55; }
+
+/* ---------- result rows ---------- */
+
+.sort-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+}
+
+.result-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.result-row { border-bottom: 1px solid var(--panel-border); }
+.result-row:last-child { border-bottom: 0; }
+.result-row-open { background: var(--accent-soft); }
+
+/* A candidate already turned down for this job. Dimmed rather than removed — the
+   row is there so the recruiter recognises the name, not to be acted on. */
+.result-row-rejected .result-identity,
+.result-row-rejected .result-score { opacity: 0.55; }
+.result-row-rejected .result-name { color: var(--text-muted); }
+
+.result-main {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 10px;
+}
+
+.result-identity {
+  display: grid;
+  /* Same reason as .card-body: without a 0 floor the skill chips widen this track
+     and run under the score ring in the next grid column. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  min-width: 0;
+}
+
+.result-name-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.result-name {
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--accent-strong);
+  text-decoration: none;
+}
+
+.result-name:hover { text-decoration: underline; }
+
+.result-meta {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.result-score { flex: none; }
+
+.result-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+
+.result-toggle { flex: none; }
+
+.result-detail {
+  padding: 0 10px 14px;
+}
+
+/* The expanded card sits inside a row that already has its own frame. */
+.result-detail > .card {
+  border-color: var(--panel-border);
+  box-shadow: none;
+}
+
+@media (max-width: 860px) {
+  .result-main {
+    grid-template-columns: auto minmax(0, 1fr);
+    row-gap: 12px;
+  }
+  .result-score { grid-column: 2; justify-self: start; }
+  .result-actions { grid-column: 2; flex-wrap: wrap; }
+}
+
+/* A stage picker sits where a status pill used to, in a narrow sidebar column and in
+   a table cell, so it stacks its own error underneath rather than widening either. */
+.stage-control {
+  display: inline-grid;
+  gap: 4px;
+  justify-items: start;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.stage-control .filter-select { max-width: 100%; }
+
+.stage-context {
+  display: block;
+  margin-top: 4px;
+}
+
+.field-error {
+  font-size: 11.5px;
+  color: var(--bad);
+}
+
+/* ---------- sidebar definition lists ---------- */
+
+.detail-list {
+  margin: 0;
+  display: grid;
+  gap: 9px;
+}
+
+.detail-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  font-size: 12.5px;
+}
+
+.detail-pair dt { color: var(--text-muted); }
+
+.detail-pair dd {
+  margin: 0;
+  text-align: right;
+  font-weight: 600;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.side-actions {
+  display: grid;
+  gap: 8px;
+}
+
+/* Sidebar buttons are stacked and full width, so they read as a menu. */
+.side-actions .btn {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.note-card { background: var(--accent-soft); border-color: var(--accent-strong); }
+.note-title { margin: 0 0 6px; font-size: 13.5px; }
+
+.note-body {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+.note-toggle { padding-left: 0; margin-top: 6px; }
+
+/* ---------- dashboard: pipeline deltas, split row, sidebar help ---------- */
+
+/* Pipeline beside the attention queue. The pipeline is given the larger share
+   because six stages need the width; attention rows are short. */
+.dash-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 12px;
+  /* Stretch, not start: the two cards in a row read as a pair, and a short one
+     beside a tall one leaves a ragged edge. */
+  align-items: stretch;
+}
+
+/* Cards in a stretched row lay out as columns so their body absorbs the extra
+   height rather than leaving it blank underneath. */
+.dash-split > .card {
+  display: flex;
+  flex-direction: column;
+}
+
+.dash-split > .card > .card-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+@media (max-width: 1150px) {
+  .dash-split { grid-template-columns: minmax(0, 1fr); }
+}
+
+.pipe-delta {
+  font-size: 11.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+  min-height: 1em;
+}
+
+.pipe-up { color: var(--good); }
+.pipe-down { color: var(--bad); }
+
+.pipeline-note {
+  margin: 8px 0 0;
+  font-size: 11.5px;
+  color: var(--text-faint);
+  line-height: 1.5;
+}
+
+/* The header now carries the reporting-window selector on the right. */
+.dash-hello {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* Underlined name links, matching the design's table styling. */
+.who-link { color: var(--accent-strong); text-decoration: none; }
+.who-link:hover { text-decoration: underline; }
+
+.sidebar-help {
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.07);
+  display: grid;
+  gap: 2px;
+}
+
+.sidebar-help-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.sidebar-help-body {
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.62);
+  line-height: 1.4;
+}
+
+/* ---------- job detail ---------- */
+
+.job-page {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.job-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.job-col {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  min-width: 0;
+}
+
+@media (max-width: 1100px) {
+  .job-split { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ---------- overflow menu ---------- */
+
+.more-wrap { position: relative; }
+
+.more-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 40;
+  min-width: 170px;
+  padding: 5px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--panel-border-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16);
+  display: grid;
+  gap: 1px;
+}
+
+.more-menu button {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--text);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.more-menu button:hover { background: var(--accent-soft); }
+.menu-danger { color: var(--bad); }
+.menu-danger:hover { background: var(--bad-soft); }
+
+/* ---------- skill coverage bars ---------- */
+
+.coverage {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.coverage-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 96px auto;
+  gap: 10px;
+  align-items: center;
+  font-size: 12.5px;
+}
+
+.coverage-skill {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+}
+
+.coverage-track {
+  height: 7px;
+  border-radius: 4px;
+  background: var(--panel-border);
+  overflow: hidden;
+}
+
+.coverage-fill {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: var(--accent-strong);
+}
+
+.coverage-count {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* ---------- prose bullets ---------- */
+
+.bullet-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 7px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.bullet-list li::marker { color: var(--accent-strong); }
+
+/* ---------- edit form ---------- */
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.form-grid label { display: grid; gap: 5px; }
+
+.form-grid input {
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--panel-border-strong);
+  background: var(--bg-input);
+  font-size: 13.5px;
+  width: 100%;
+}
+
+/* A skill the parser marked critical becomes a hard filter, so it is not just
+   another chip in the row. */
+.chip-critical {
+  border-color: var(--accent-strong);
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+
+.btn-danger {
+  border-color: var(--bad);
+  color: var(--bad);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--bad-soft);
+  border-color: var(--bad);
+}
+
+/* ---------- candidate detail ---------- */
+
+.who-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.avatar-lg {
+  width: 54px;
+  height: 54px;
+  font-size: 18px;
+  flex: none;
+}
+
+.match-card { border-color: var(--accent-strong); }
+
+.match-body {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+}
+
+/* Stands in for the score ring when there is no score. Same footprint, so the
+   card does not resize once a screening has run. */
+.ring-empty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 78px;
+  height: 78px;
+  flex: none;
+  border-radius: 50%;
+  border: 5px solid var(--panel-border);
+  color: var(--text-faint);
+  font-size: 11px;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.match-text { min-width: 0; }
+
+.match-text h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 2px 0 4px;
+  font-size: 19px;
+}
+
+.match-text p {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+.match-actions {
+  display: grid;
+  gap: 6px;
+  justify-items: end;
+  flex: none;
+}
+
+@media (max-width: 820px) {
+  .match-body { grid-template-columns: auto minmax(0, 1fr); }
+  .match-actions { grid-column: 1 / -1; justify-items: start; }
+}
+
+/* ---------- grouped skills ---------- */
+
+.skill-groups {
+  display: grid;
+  gap: 12px;
+}
+
+.skill-group {
+  display: grid;
+  grid-template-columns: 118px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.skill-group-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding-top: 4px;
+}
+
+@media (max-width: 720px) {
+  .skill-group { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .skill-group-label { padding-top: 0; }
+}
+
+/* ---------- resume versions ---------- */
+
+.resume-item {
+  display: grid;
+  gap: 8px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.resume-item:last-child { border-bottom: 0; }
+
+.resume-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.resume-meta {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.resume-name {
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- misc ---------- */
+
+.notes-edit {
+  display: grid;
+  gap: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--panel-border);
+}
+
+.notes-edit textarea {
+  width: 100%;
+  padding: 9px 11px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--panel-border-strong);
+  background: var(--bg-input);
+  font: inherit;
+  font-size: 13px;
+  resize: vertical;
+}
+
+/* A button that reads as a link — used where the affordance is inline text. */
+.link-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--accent-strong);
+  font: inherit;
+  font-size: 12.5px;
+  text-align: right;
+  cursor: pointer;
+}
+
+.link-btn:hover { text-decoration: underline; }
+
+.hint-bad { color: var(--bad); }
+
+/* ---------- dashboard v3: tinted cards, charts, top-candidate list ---------- */
+
+/* ---------- charts ---------- */
+
+.chart-frame {
+  width: 100%;
+  /* Recharts measures its parent, so the frame needs a resolved width even inside
+     a grid column that is still sizing, and a resolved height for the responsive
+     container. Growing rather than fixed lets it absorb the row's spare height. */
+  min-width: 0;
+  flex: 1 1 auto;
+  min-height: 186px;
+}
+
+.chart-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-dot,
+.chart-tip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.chart-tip {
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--panel-border-strong);
+  background: var(--bg-elevated);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.14);
+  font-size: 12px;
+  color: var(--text);
+}
+
+.chart-tip strong { font-size: 12.5px; }
+
+.chart-tip span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+}
+
+.chart-tip b { color: var(--text); }
+
+/* The rail sits under the bars, so it loses its own top padding. */
+.chart-frame + .pipeline { margin-top: 6px; }
+
+/* ---------- top candidates list ---------- */
+
+.top-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.top-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.top-row:last-child { border-bottom: 0; }
+
+.top-right {
+  display: grid;
+  gap: 4px;
+  justify-items: end;
+  flex: none;
+}
+
+.top-score { font-size: 12px; }
+
+.sidenav-badge {
+  margin-left: auto;
+  padding: 1px 7px;
+  border-radius: 9px;
+  background: var(--accent-strong);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* Rail under a chart that already labels the stages: dots and change only. */
+.pipeline-compact {
+  padding: 0;
+  margin-top: -4px;
+}
+
+.pipeline-compact .pipe-step { gap: 4px; }
+
+/* ---------- tables that must not scroll sideways ---------- */
+
+/* A cell that gives up its width rather than widening the table.
+   `max-width: 0` with a percentage width is the trick that makes ellipsis work
+   in an auto-layout table — without it the cell grows to fit its longest word
+   and pushes the whole table into horizontal scroll. */
+.listing .col-clip {
+  max-width: 0;
+  width: 38%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.listing .col-clip > * {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Numeric and status columns only need room for their content, so the clipped
+   column absorbs whatever is left. */
+.listing .col-tight {
+  width: 1%;
+  white-space: nowrap;
+}
+
+/* Location is secondary to the title, so it yields width first. */
+.listing .col-location { width: 18%; }
+
+/* Green like the design, without the pill chrome — it is a count, not a status. */
+.strong-count {
+  color: var(--good);
+  font-weight: 700;
+}
+
+/* Numeric headers wrap to two lines rather than forcing the table wider; the
+   header row is allowed to be taller than the body rows. */
+.listing th.col-tight { white-space: normal; }
+
+/* ---------- antd, reconciled with the app's own chrome ---------- */
+
+/* The card already draws a separator under its header, and antd's tab bar adds
+   its own margin below. Both together left a visible double rule. */
+.ui-tabs .ant-tabs-nav { margin: 0; }
+
+.tab-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+/* antd's Input draws its own border; the app's search field wrapper drew one too. */
+.ui-search { max-width: 340px; }
+.ui-search .ant-input-prefix { color: var(--text-faint); margin-inline-end: 8px; }
+
+/* Why match, then why not — one after the other, full width. */
+.why-stack {
+  display: grid;
+  gap: 14px;
+}
+
+/* A rule between the two makes the switch from reasons-for to reasons-against
+   read as a change of subject rather than more of the same list. */
+.why-stack .why-not {
+  padding-top: 12px;
+  border-top: 1px solid var(--panel-border);
+}
+
+/* A tile that leads somewhere says so on hover. Tiles without a destination keep
+   the same resting appearance, so the row stays visually even. */
+a.stat-tile-link {
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+}
+
+a.stat-tile-link:hover {
+  border-color: var(--accent-strong);
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+}
+
+a.stat-tile-link:hover .stat-tile-value { color: var(--accent-strong); }
+
+a.stat-tile-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.check-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 9px;
+  align-items: start;
+  margin: 4px 0 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.check-row input { margin-top: 2px; }
+.check-row small {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}

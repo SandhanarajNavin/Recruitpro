@@ -1,0 +1,17 @@
+# ── python ────────────────────────────────────
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# ── env ───────────────────────────────────────
+.env
+.env.*.local
+
+# ── candidate files (never commit these) ──────
+uploads/*
+!uploads/.gitkeep

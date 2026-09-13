@@ -1,0 +1,1210 @@
+<title>Recruitment Agent V1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=JetBrains+Mono:wght@400;500;700&display=swap">
+
+<style>
+  :root {
+    --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    --body: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+    --bg: #e9edec;
+    --surface: #f9fbfa;
+    --surface-2: #f1f4f3;
+    --ink: #111a1d;
+    --ink-2: #3c4d51;
+    --ink-3: #6b7f83;
+    --rule: #c6d1cf;
+    --rule-2: #dae2e0;
+    --teal: #0d6b6d;
+    --teal-soft: rgba(13, 107, 109, 0.10);
+    --amber: #92510a;
+    --amber-soft: rgba(146, 81, 10, 0.10);
+    --crimson: #a12d45;
+    --crimson-soft: rgba(161, 45, 69, 0.10);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0b1113;
+      --surface: #121b1e;
+      --surface-2: #172226;
+      --ink: #e4ecea;
+      --ink-2: #a8babc;
+      --ink-3: #7d9296;
+      --rule: #26343a;
+      --rule-2: #1d2b2f;
+      --teal: #5ac6be;
+      --teal-soft: rgba(90, 198, 190, 0.13);
+      --amber: #e0a45c;
+      --amber-soft: rgba(224, 164, 92, 0.13);
+      --crimson: #e88298;
+      --crimson-soft: rgba(232, 130, 152, 0.13);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #0b1113;
+    --surface: #121b1e;
+    --surface-2: #172226;
+    --ink: #e4ecea;
+    --ink-2: #a8babc;
+    --ink-3: #7d9296;
+    --rule: #26343a;
+    --rule-2: #1d2b2f;
+    --teal: #5ac6be;
+    --teal-soft: rgba(90, 198, 190, 0.13);
+    --amber: #e0a45c;
+    --amber-soft: rgba(224, 164, 92, 0.13);
+    --crimson: #e88298;
+    --crimson-soft: rgba(232, 130, 152, 0.13);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 17px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 28px 120px;
+    display: grid;
+    grid-template-columns: 208px minmax(0, 1fr);
+    gap: 56px;
+    align-items: start;
+  }
+
+  /* ── masthead ─────────────────────────────── */
+  .masthead {
+    grid-column: 1 / -1;
+    padding: 72px 0 34px;
+    border-bottom: 1px solid var(--rule);
+    display: grid;
+    gap: 18px;
+  }
+  .kicker {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .masthead h1 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(2.6rem, 6.4vw, 4.5rem);
+    line-height: 0.95;
+    letter-spacing: -0.028em;
+    text-wrap: balance;
+    max-width: 20ch;
+  }
+  .standfirst {
+    max-width: 62ch;
+    font-size: 1.14rem;
+    color: var(--ink-2);
+  }
+  .stackline {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--ink-2);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+  }
+  .stackline b {
+    font-weight: 500;
+    color: var(--teal);
+  }
+
+  /* ── rail ─────────────────────────────────── */
+  .rail {
+    position: sticky;
+    top: 28px;
+    font-family: var(--mono);
+    font-size: 12px;
+    display: grid;
+    gap: 26px;
+    padding-top: 44px;
+  }
+  .rail ol {
+    list-style: none;
+    display: grid;
+    gap: 1px;
+  }
+  .rail a {
+    display: grid;
+    grid-template-columns: 22px 1fr;
+    gap: 8px;
+    padding: 5px 8px 5px 0;
+    color: var(--ink-3);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    padding-left: 10px;
+    transition: color 0.14s, border-color 0.14s;
+  }
+  .rail a:hover { color: var(--ink); }
+  .rail a.on {
+    color: var(--ink);
+    border-left-color: var(--teal);
+  }
+  .rail a span { color: var(--ink-3); }
+  .rail a.on span { color: var(--teal); }
+  .rail a:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+
+  .legend {
+    display: grid;
+    gap: 9px;
+    padding-left: 12px;
+    border-top: 1px solid var(--rule-2);
+    padding-top: 20px;
+  }
+  .legend p {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .chip {
+    display: grid;
+    grid-template-columns: 10px 1fr;
+    gap: 9px;
+    align-items: start;
+    font-size: 11px;
+    line-height: 1.45;
+    color: var(--ink-2);
+  }
+  .chip i {
+    width: 10px;
+    height: 10px;
+    margin-top: 4px;
+    border-radius: 2px;
+    display: block;
+  }
+  .chip.t i { background: var(--teal); }
+  .chip.a i { background: var(--amber); }
+
+  /* ── sections ─────────────────────────────── */
+  main { display: grid; gap: 0; min-width: 0; }
+
+  section {
+    padding: 52px 0;
+    border-bottom: 1px solid var(--rule-2);
+    scroll-margin-top: 20px;
+    min-width: 0;
+  }
+  section:last-of-type { border-bottom: 0; }
+
+  .shead { display: grid; gap: 10px; margin-bottom: 26px; }
+  .snum {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: var(--teal);
+  }
+  h2 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: clamp(1.5rem, 2.9vw, 2.05rem);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    text-wrap: balance;
+  }
+  h3 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 1.02rem;
+    letter-spacing: 0.005em;
+    margin: 38px 0 12px;
+  }
+  p { max-width: 66ch; margin-bottom: 14px; }
+  p:last-child { margin-bottom: 0; }
+  .lede { font-size: 1.08rem; color: var(--ink-2); }
+  strong { font-weight: 600; }
+  code {
+    font-family: var(--mono);
+    font-size: 0.86em;
+    background: var(--surface-2);
+    border: 1px solid var(--rule-2);
+    border-radius: 4px;
+    padding: 0.1em 0.34em;
+  }
+
+  ul.plain { list-style: none; display: grid; gap: 9px; max-width: 66ch; margin: 6px 0 0; }
+  ul.plain li {
+    display: grid;
+    grid-template-columns: 14px 1fr;
+    gap: 10px;
+    align-items: baseline;
+    color: var(--ink-2);
+    font-size: 0.98rem;
+  }
+  ul.plain li::before {
+    content: "";
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--teal);
+    transform: translateY(-2px);
+  }
+  ul.plain.gap li::before { background: var(--crimson); }
+
+  /* ── figures ──────────────────────────────── */
+  figure {
+    margin: 30px 0 8px;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 26px 24px 20px;
+    min-width: 0;
+  }
+  .figscroll { overflow-x: auto; }
+  figcaption {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--rule-2);
+    font-family: var(--mono);
+    font-size: 11.5px;
+    line-height: 1.6;
+    color: var(--ink-3);
+    max-width: 82ch;
+  }
+  figcaption b { color: var(--ink-2); font-weight: 500; }
+
+  .dg { display: block; width: 100%; height: auto; min-width: 620px; }
+  .dg text { font-family: var(--mono); fill: var(--ink-2); }
+  .dg .nt { font-size: 12.5px; font-weight: 500; fill: var(--ink); }
+  .dg .ns { font-size: 10px; fill: var(--ink-3); }
+  .dg .big { font-size: 15px; font-weight: 700; fill: var(--ink); letter-spacing: 0.04em; }
+  .dg .el { font-size: 10px; fill: var(--ink-3); }
+  .dg .eb { font-size: 10px; font-weight: 500; letter-spacing: 0.11em; }
+  .dg .num { font-size: 12.5px; font-weight: 700; }
+  .dg .tl { fill: var(--teal); }
+  .dg .fld { font-size: 9px; fill: var(--ink-3); }
+  .dg .onbar { fill: var(--surface); }
+  .dg .wpct { fill: var(--teal); }
+  .dg .al { fill: var(--amber); }
+  .dg .cl { fill: var(--crimson); }
+
+  .dg .n { fill: var(--surface-2); stroke: var(--rule); stroke-width: 1.4; }
+  .dg .n-t { fill: var(--teal-soft); stroke: var(--teal); stroke-width: 1.5; }
+  .dg .n-a { fill: var(--amber-soft); stroke: var(--amber); stroke-width: 1.5; }
+  .dg .band { fill: var(--surface-2); stroke: none; }
+  .dg .hair { fill: none; stroke: var(--rule); stroke-width: 1; }
+
+  .dg .e { fill: none; stroke: var(--ink-3); stroke-width: 1.4; marker-end: url(#ah); }
+  .dg .e-t { fill: none; stroke: var(--teal); stroke-width: 1.5; marker-end: url(#ah-t); }
+  .dg .e-a { fill: none; stroke: var(--amber); stroke-width: 1.5; marker-end: url(#ah-a); }
+  .dg .e-c { fill: none; stroke: var(--crimson); stroke-width: 1.5; }
+  .dg .dash { stroke-dasharray: 5 4; }
+  .dg .nom { marker-end: none; }
+
+  .mk-ink { fill: var(--ink-3); }
+  .mk-teal { fill: var(--teal); }
+  .mk-amber { fill: var(--amber); }
+
+  .dg .bar-t { fill: var(--teal); }
+  .dg .bar-a { fill: var(--amber); }
+  .dg .bar-bg { fill: var(--rule-2); }
+
+  /* ── tables ───────────────────────────────── */
+  .tablewrap { overflow-x: auto; margin: 26px 0 6px; border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 560px; }
+  th, td { text-align: left; padding: 12px 18px; border-bottom: 1px solid var(--rule-2); vertical-align: top; }
+  thead th {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 500;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--rule);
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.mono, th.mono { font-family: var(--mono); font-size: 12.5px; font-variant-numeric: tabular-nums; color: var(--ink); }
+  td.dim { color: var(--ink-2); }
+  .tag {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.05em;
+    padding: 2px 7px;
+    border-radius: 4px;
+    border: 1px solid var(--rule);
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+  .tag.llm { color: var(--amber); border-color: var(--amber); background: var(--amber-soft); }
+  .tag.det { color: var(--teal); border-color: var(--teal); background: var(--teal-soft); }
+
+  /* ── callout ──────────────────────────────── */
+  .call {
+    margin: 28px 0 6px;
+    padding: 20px 22px;
+    border-radius: 10px;
+    background: var(--teal-soft);
+    border: 1px solid var(--teal);
+    max-width: 74ch;
+  }
+  .call p { color: var(--ink); max-width: 64ch; }
+  .call .kicker { color: var(--teal); margin-bottom: 8px; }
+  .call.warn { background: var(--crimson-soft); border-color: var(--crimson); }
+  .call.warn .kicker { color: var(--crimson); }
+
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 26px; margin-top: 8px; }
+  .cols h3 { margin-top: 0; }
+  .cols ul.plain { max-width: none; }
+
+  footer {
+    grid-column: 1 / -1;
+    padding-top: 34px;
+    border-top: 1px solid var(--rule);
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--ink-3);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    justify-content: space-between;
+  }
+
+  @media (max-width: 900px) {
+    .wrap { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 0 20px 90px; }
+    .rail { position: static; padding-top: 34px; border-bottom: 1px solid var(--rule-2); padding-bottom: 26px; }
+    .rail ol { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); display: grid; }
+    .legend { border-top: 1px solid var(--rule-2); }
+    .masthead { padding-top: 46px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+
+<svg aria-hidden="true" focusable="false" style="position:absolute;width:0;height:0;overflow:hidden">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" class="mk-ink"></path>
+    </marker>
+    <marker id="ah-t" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" class="mk-teal"></path>
+    </marker>
+    <marker id="ah-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" class="mk-amber"></path>
+    </marker>
+  </defs>
+</svg>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="kicker">Architecture Reference &middot; V1</p>
+    <h1>Recruitment Agent</h1>
+    <p class="standfirst">A recruiter uploads a resume once. It becomes reusable candidate intelligence &mdash; parsed, structured, embedded, stored. Every job description that arrives afterwards queries that repository and returns five candidates with a transparent score and evidence for both the match and the gaps.</p>
+    <p class="stackline">
+      <span><b>Next.js</b> web app</span>
+      <span><b>FastAPI</b> services</span>
+      <span><b>PostgreSQL + pgvector</b> repository</span>
+      <span><b>Redis + workers</b> async</span>
+      <span><b>LLM / embeddings / reranker</b> AI layer</span>
+    </p>
+  </header>
+
+  <nav class="rail" aria-label="Sections">
+    <ol>
+      <li><a href="#s1"><span>01</span> The separation</a></li>
+      <li><a href="#s2"><span>02</span> System architecture</a></li>
+      <li><a href="#s3"><span>03</span> Stack &amp; models</a></li>
+      <li><a href="#s4"><span>04</span> Resume ingestion</a></li>
+      <li><a href="#s5"><span>05</span> Data model</a></li>
+      <li><a href="#s6"><span>06</span> Match &amp; rank</a></li>
+      <li><a href="#s7"><span>07</span> Score &amp; explain</a></li>
+      <li><a href="#s8"><span>08</span> API surface</a></li>
+      <li><a href="#s9"><span>09</span> Boundaries</a></li>
+      <li><a href="#s10"><span>10</span> Decisions</a></li>
+    </ol>
+    <div class="legend">
+      <p>Layer encoding</p>
+      <div class="chip t"><i></i><span>Candidate layer &mdash; persistent, built once, JD-independent</span></div>
+      <div class="chip a"><i></i><span>Recruitment layer &mdash; per screening run, job-specific</span></div>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- 01 ───────────────────────────────────── -->
+    <section id="s1">
+      <div class="shead">
+        <p class="snum">01</p>
+        <h2>Candidate intelligence is built independently of any job description</h2>
+      </div>
+      <p class="lede">This is the load-bearing decision in the whole design. A resume is never parsed, filtered, or embedded <em>with respect to</em> a JD. Ingestion and screening are two separate workflows that meet at exactly one surface: the candidate repository.</p>
+      <p>The consequence is what makes the product work at all. A recruiter who has accumulated a thousand resumes over eight months does not re-process anything to open a new role &mdash; they paste a job description and query intelligence that already exists. If the two layers were coupled, every new JD would mean re-reading every resume, and cost would scale with the product of resumes and roles rather than their sum.</p>
+
+      <figure>
+        <div class="figscroll">
+          <svg class="dg" viewBox="0 0 1000 430" role="img" aria-label="Diagram: the candidate layer flows resumes into a persistent repository, while the recruitment layer queries that repository per job without touching resumes.">
+            <!-- candidate lane -->
+            <text class="eb tl" x="40" y="24">CANDIDATE LAYER &nbsp;·&nbsp; ONCE PER RESUME &nbsp;·&nbsp; NO JD INVOLVED</text>
+            <rect class="n-t" x="40" y="42" width="150" height="54" rx="6"></rect>
+            <text class="nt" x="115" y="66" text-anchor="middle">Resume file</text>
+            <text class="ns" x="115" y="82" text-anchor="middle">PDF / DOCX</text>
+
+            <rect class="n-t" x="222" y="42" width="150" height="54" rx="6"></rect>
+            <text class="nt" x="297" y="66" text-anchor="middle">Text extraction</text>
+            <text class="ns" x="297" y="82" text-anchor="middle">deterministic</text>
+
+            <rect class="n-t" x="404" y="42" width="150" height="54" rx="6"></rect>
+            <text class="nt" x="479" y="66" text-anchor="middle">Structured profile</text>
+            <text class="ns" x="479" y="82" text-anchor="middle">LLM extraction</text>
+
+            <rect class="n-t" x="586" y="42" width="150" height="54" rx="6"></rect>
+            <text class="nt" x="661" y="66" text-anchor="middle">Candidate vector</text>
+            <text class="ns" x="661" y="82" text-anchor="middle">embedding model</text>
+
+            <path class="e-t" d="M190,69 L216,69"></path>
+            <path class="e-t" d="M372,69 L398,69"></path>
+            <path class="e-t" d="M554,69 L580,69"></path>
+            <path class="e-t" d="M661,96 L661,184"></path>
+            <text class="el tl" x="672" y="146">write profile + vector</text>
+
+            <!-- repository -->
+            <rect class="n-t" x="300" y="186" width="400" height="104" rx="8" stroke-width="2.2"></rect>
+            <text class="big tl" x="500" y="218" text-anchor="middle">CANDIDATE REPOSITORY</text>
+            <text class="ns" x="500" y="240" text-anchor="middle">PostgreSQL + pgvector &nbsp;·&nbsp; profiles, skills, experience, vectors</text>
+            <text class="ns" x="500" y="258" text-anchor="middle">persistent &nbsp;·&nbsp; versioned &nbsp;·&nbsp; reusable</text>
+            <text class="ns" x="500" y="276" text-anchor="middle">one row per candidate, not per job</text>
+
+            <path class="e-a dash" d="M700,214 L784,214"></path>
+            <text class="el al" x="792" y="211">…and every future job,</text>
+            <text class="el al" x="792" y="225">with zero re-processing</text>
+
+            <!-- recruitment lane -->
+            <text class="eb al" x="40" y="334">RECRUITMENT LAYER &nbsp;·&nbsp; ONCE PER SCREENING RUN &nbsp;·&nbsp; JOB-SPECIFIC</text>
+            <rect class="n-a" x="40" y="352" width="150" height="54" rx="6"></rect>
+            <text class="nt" x="115" y="376" text-anchor="middle">Job description</text>
+            <text class="ns" x="115" y="392" text-anchor="middle">pasted or uploaded</text>
+
+            <rect class="n-a" x="222" y="352" width="150" height="54" rx="6"></rect>
+            <text class="nt" x="297" y="376" text-anchor="middle">Requirements</text>
+            <text class="ns" x="297" y="392" text-anchor="middle">required vs preferred</text>
+
+            <rect class="n-a" x="404" y="352" width="150" height="54" rx="6"></rect>
+            <text class="nt" x="479" y="376" text-anchor="middle">JD vector</text>
+            <text class="ns" x="479" y="392" text-anchor="middle">same embedding model</text>
+
+            <rect class="n-a" x="586" y="352" width="150" height="54" rx="6"></rect>
+            <text class="nt" x="661" y="376" text-anchor="middle">Screening run</text>
+            <text class="ns" x="661" y="392" text-anchor="middle">retrieve → … → score</text>
+
+            <rect class="n-a" x="800" y="352" width="160" height="54" rx="6" stroke-width="2.2"></rect>
+            <text class="nt" x="880" y="376" text-anchor="middle">Top 5 + evidence</text>
+            <text class="ns" x="880" y="392" text-anchor="middle">job-specific result</text>
+
+            <path class="e-a" d="M190,379 L216,379"></path>
+            <path class="e-a" d="M372,379 L398,379"></path>
+            <path class="e-a" d="M554,379 L580,379"></path>
+            <path class="e-a" d="M736,379 L794,379"></path>
+
+            <path class="e-a" d="M470,352 L470,296"></path>
+            <text class="el al" x="360" y="322" text-anchor="end">ANN + SQL query</text>
+            <path class="e-a" d="M600,296 L600,346"></path>
+            <text class="el al" x="612" y="322">candidate set</text>
+          </svg>
+        </div>
+        <figcaption><b>Figure 1.</b> The only shared surface is the repository. Nothing in the top lane knows a job description exists; nothing in the bottom lane reads or re-parses a resume file. Screening results are written per job &mdash; the repository itself is never mutated by a screening run.</figcaption>
+      </figure>
+
+      <div class="call">
+        <p class="kicker">Rule</p>
+        <p>A resume must never be embedded or stored according to a JD filter. If a change would make ingestion depend on a job, it belongs in the recruitment layer instead.</p>
+      </div>
+    </section>
+
+    <!-- 02 ───────────────────────────────────── -->
+    <section id="s2">
+      <div class="shead">
+        <p class="snum">02</p>
+        <h2>System architecture</h2>
+      </div>
+      <p class="lede">One Next.js client, one modular FastAPI application, three stores, and a worker pool. AI providers are called only from workers &mdash; never from a request handler on the critical path.</p>
+
+      <figure>
+        <div class="figscroll">
+          <svg class="dg" viewBox="0 0 1000 600" role="img" aria-label="Diagram: Next.js client calls FastAPI over REST; FastAPI talks to Postgres, object storage and a Redis queue; workers consume the queue, call AI services, and write results back to Postgres.">
+            <rect class="n" x="430" y="16" width="140" height="40" rx="20"></rect>
+            <text class="nt" x="500" y="41" text-anchor="middle">Recruiter</text>
+            <path class="e" d="M500,56 L500,84"></path>
+
+            <!-- web -->
+            <rect class="n" x="200" y="88" width="600" height="76" rx="8"></rect>
+            <text class="nt" x="220" y="114">Next.js web app</text>
+            <text class="ns" x="220" y="134">Dashboard · Candidates · Jobs · Screening · Candidate detail · Settings</text>
+            <text class="ns" x="220" y="152">ResumeUploader · CandidateTable · ScoreBreakdown · MatchExplanation</text>
+            <text class="el" x="780" y="114" text-anchor="end">Vercel</text>
+
+            <path class="e" d="M500,164 L500,210"></path>
+            <text class="el" x="512" y="191">HTTPS / REST · JWT</text>
+
+            <!-- api -->
+            <rect class="n" x="200" y="214" width="600" height="88" rx="8" stroke-width="2"></rect>
+            <text class="nt" x="220" y="240">FastAPI</text>
+            <text class="el" x="780" y="240" text-anchor="end">/api/v1</text>
+            <rect class="n" x="216" y="252" width="108" height="34" rx="5"></rect>
+            <text class="ns" x="270" y="273" text-anchor="middle">auth</text>
+            <rect class="n" x="332" y="252" width="108" height="34" rx="5"></rect>
+            <text class="ns" x="386" y="273" text-anchor="middle">resumes</text>
+            <rect class="n" x="448" y="252" width="108" height="34" rx="5"></rect>
+            <text class="ns" x="502" y="273" text-anchor="middle">candidates</text>
+            <rect class="n" x="564" y="252" width="108" height="34" rx="5"></rect>
+            <text class="ns" x="618" y="273" text-anchor="middle">jobs</text>
+            <rect class="n" x="680" y="252" width="108" height="34" rx="5"></rect>
+            <text class="ns" x="734" y="273" text-anchor="middle">screenings</text>
+
+            <!-- edges to stores -->
+            <path class="e" d="M280,302 L280,332 L185,332 L185,360"></path>
+            <text class="el" x="192" y="324">SQL + ANN</text>
+            <path class="e" d="M500,302 L500,360"></path>
+            <text class="el" x="512" y="336">signed put / get</text>
+            <path class="e" d="M720,302 L720,332 L815,332 L815,360"></path>
+            <text class="el" x="808" y="324" text-anchor="end">enqueue</text>
+
+            <!-- stores -->
+            <rect class="n-t" x="60" y="364" width="250" height="84" rx="8"></rect>
+            <text class="nt" x="80" y="392">PostgreSQL + pgvector</text>
+            <text class="ns" x="80" y="411">candidates, resumes, profiles</text>
+            <text class="ns" x="80" y="429">jobs, screenings, results, vectors</text>
+
+            <rect class="n" x="375" y="364" width="250" height="84" rx="8"></rect>
+            <text class="nt" x="395" y="392">Object storage</text>
+            <text class="ns" x="395" y="411">original PDF / DOCX files</text>
+            <text class="ns" x="395" y="429">private bucket, versioned</text>
+
+            <rect class="n-a" x="690" y="364" width="250" height="84" rx="8"></rect>
+            <text class="nt" x="710" y="392">Redis queue</text>
+            <text class="ns" x="710" y="411">ingestion jobs</text>
+            <text class="ns" x="710" y="429">screening jobs</text>
+
+            <path class="e-a" d="M815,448 L815,470"></path>
+            <text class="el al" x="827" y="464">consume</text>
+
+            <!-- workers + ai -->
+            <rect class="n-a" x="690" y="474" width="250" height="64" rx="8"></rect>
+            <text class="nt" x="710" y="500">Background workers</text>
+            <text class="ns" x="710" y="519">Celery · retries · idempotent</text>
+
+            <rect class="n" x="280" y="474" width="360" height="64" rx="8"></rect>
+            <text class="nt" x="300" y="500">AI services <tspan class="ns">(external APIs)</tspan></text>
+            <text class="ns" x="300" y="519">LLM · embedding model · cross-encoder reranker</text>
+
+            <path class="e" d="M690,506 L646,506"></path>
+            <text class="el" x="668" y="496" text-anchor="middle">calls</text>
+
+            <path class="e-t dash" d="M745,538 L745,568 L185,568 L185,452"></path>
+            <text class="el tl" x="460" y="583" text-anchor="middle">workers write profiles, vectors, scores and explanations back to Postgres</text>
+          </svg>
+        </div>
+        <figcaption><b>Figure 2.</b> The request path (solid, top to bottom) never blocks on an AI provider. Everything expensive crosses the queue into a worker, which is the only component holding provider credentials, and the write-back (dashed) is the sole path by which AI output enters the database.</figcaption>
+      </figure>
+
+      <h3>Backend module layout</h3>
+      <p>The FastAPI application stays modular so components can be extracted into services later without a rewrite. Routers hold no business logic; services own orchestration; the <code>ai/</code> package is the only place that knows a provider exists.</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th class="mono">Package</th><th>Contents</th><th>Depends on</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">api/v1/</td><td class="dim">auth · resumes · candidates · jobs · screenings</td><td class="dim">services, schemas</td></tr>
+            <tr><td class="mono">services/</td><td class="dim">resume · candidate · job · screening · matching · scoring · explanation</td><td class="dim">repositories, ai</td></tr>
+            <tr><td class="mono">ai/</td><td class="dim">resume_parser · jd_parser · embedding_service · reranker · llm_service</td><td class="dim">provider SDKs only</td></tr>
+            <tr><td class="mono">workers/</td><td class="dim">ingestion and screening tasks, retry and idempotency policy</td><td class="dim">services</td></tr>
+            <tr><td class="mono">repositories/</td><td class="dim">query objects, including the hybrid ANN + SQL candidate query</td><td class="dim">models</td></tr>
+            <tr><td class="mono">models/ schemas/ core/</td><td class="dim">ORM tables · Pydantic contracts · config, security, logging</td><td class="dim">&mdash;</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 03 ───────────────────────────────────── -->
+    <section id="s3">
+      <div class="shead">
+        <p class="snum">03</p>
+        <h2>Stack, and which model does which job</h2>
+      </div>
+      <p class="lede">Different AI tasks want different model types. One model does not need to perform every operation &mdash; and the component that produces the final number is not a model at all.</p>
+
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Layer</th><th>Technology</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">Frontend</td><td class="dim">Next.js + TypeScript</td><td class="dim">Recruiter-facing web application</td></tr>
+            <tr><td class="mono">UI</td><td class="dim">Tailwind CSS / shadcn&#47;ui</td><td class="dim">Application interface</td></tr>
+            <tr><td class="mono">Backend</td><td class="dim">Python + FastAPI</td><td class="dim">REST APIs and business logic</td></tr>
+            <tr><td class="mono">Primary database</td><td class="dim">PostgreSQL</td><td class="dim">Candidates, resumes, jobs, screenings, results</td></tr>
+            <tr><td class="mono">Vector search</td><td class="dim">pgvector</td><td class="dim">Semantic candidate / JD retrieval</td></tr>
+            <tr><td class="mono">File storage</td><td class="dim">S3 or equivalent</td><td class="dim">Original resume files, retained by version</td></tr>
+            <tr><td class="mono">Async processing</td><td class="dim">Redis + Celery, or a managed queue</td><td class="dim">Ingestion and screening background jobs</td></tr>
+            <tr><td class="mono">LLM</td><td class="dim">Claude / GPT / Gemini</td><td class="dim">Extraction, evaluation, explanation</td></tr>
+            <tr><td class="mono">Embeddings</td><td class="dim">Dedicated embedding model</td><td class="dim">Candidate and JD vectors</td></tr>
+            <tr><td class="mono">Reranker</td><td class="dim">Cross-encoder or managed reranker</td><td class="dim">Ordering after vector retrieval</td></tr>
+            <tr><td class="mono">Auth</td><td class="dim">JWT or OAuth</td><td class="dim">Recruiter authentication, role-based access</td></tr>
+            <tr><td class="mono">Deployment</td><td class="dim">Vercel + cloud backend</td><td class="dim">Application hosting</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Model responsibilities</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Component</th><th>Type</th><th>Responsibility</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">Resume parser</td><td><span class="tag llm">LLM</span></td><td class="dim">Extract structured candidate information from resume text</td></tr>
+            <tr><td class="mono">JD parser</td><td><span class="tag llm">LLM</span></td><td class="dim">Extract requirements, separating required from preferred</td></tr>
+            <tr><td class="mono">Embedding model</td><td><span class="tag det">vector</span></td><td class="dim">Create vectors for semantic retrieval</td></tr>
+            <tr><td class="mono">Reranker</td><td><span class="tag det">cross-encoder</span></td><td class="dim">Re-rank retrieved candidates on JD&#8211;candidate relevance</td></tr>
+            <tr><td class="mono">Evaluator</td><td><span class="tag llm">LLM</span> <span class="tag det">+ rules</span></td><td class="dim">Assess each requirement and produce cited evidence</td></tr>
+            <tr><td class="mono">Scoring engine</td><td><span class="tag det">Python</span></td><td class="dim">Calculate the transparent final score</td></tr>
+            <tr><td class="mono">Explanation generator</td><td><span class="tag llm">LLM</span></td><td class="dim">Turn evaluation evidence into recruiter-readable prose</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 04 ───────────────────────────────────── -->
+    <section id="s4">
+      <div class="shead">
+        <p class="snum">04</p>
+        <h2>Resume ingestion</h2>
+      </div>
+      <p class="lede">Upload returns in milliseconds. Everything that can fail slowly &mdash; extraction, LLM parsing, embedding &mdash; happens on a worker, behind a status the UI can poll.</p>
+      <p>The boundary matters for more than latency. A worker task can be retried, rate-limited, and made idempotent; a request handler holding an LLM call cannot. It also means a provider outage degrades ingestion into a backlog rather than a wall of failed uploads.</p>
+
+      <figure>
+        <div class="figscroll">
+          <svg class="dg" viewBox="0 0 1000 350" role="img" aria-label="Diagram: the synchronous upload path validates, stores and enqueues before returning 202; a worker then extracts text, parses with an LLM, upserts the candidate, embeds and marks the resume ready.">
+            <rect class="band" x="20" y="46" width="960" height="94" rx="8"></rect>
+            <text class="eb" x="34" y="38">SYNCHRONOUS &nbsp;·&nbsp; INSIDE THE REQUEST</text>
+
+            <rect class="n" x="40" y="66" width="166" height="54" rx="6"></rect>
+            <text class="ns" x="123" y="88" text-anchor="middle">POST /resumes/upload</text>
+            <text class="ns" x="123" y="105" text-anchor="middle">one or many files</text>
+
+            <rect class="n" x="230" y="66" width="166" height="54" rx="6"></rect>
+            <text class="ns" x="313" y="88" text-anchor="middle">Validate type + size</text>
+            <text class="ns" x="313" y="105" text-anchor="middle">malware scan</text>
+
+            <rect class="n" x="420" y="66" width="166" height="54" rx="6"></rect>
+            <text class="ns" x="503" y="88" text-anchor="middle">Store file</text>
+            <text class="ns" x="503" y="105" text-anchor="middle">private bucket, versioned</text>
+
+            <rect class="n" x="610" y="66" width="166" height="54" rx="6"></rect>
+            <text class="ns" x="693" y="88" text-anchor="middle">Insert resume row</text>
+            <text class="ns" x="693" y="105" text-anchor="middle">status = queued</text>
+
+            <rect class="n-a" x="800" y="66" width="160" height="54" rx="6"></rect>
+            <text class="ns" x="880" y="88" text-anchor="middle">Enqueue + respond</text>
+            <text class="ns" x="880" y="105" text-anchor="middle">202 · { resume_id }</text>
+
+            <path class="e" d="M206,93 L224,93"></path>
+            <path class="e" d="M396,93 L414,93"></path>
+            <path class="e" d="M586,93 L604,93"></path>
+            <path class="e" d="M776,93 L794,93"></path>
+
+            <!-- queue -->
+            <rect class="n-a" x="430" y="156" width="140" height="48" rx="24"></rect>
+            <text class="ns" x="500" y="176" text-anchor="middle">Redis queue</text>
+            <text class="ns" x="500" y="192" text-anchor="middle">at-least-once</text>
+
+            <path class="e-a" d="M880,120 L880,180 L576,180"></path>
+            <path class="e-a" d="M430,180 L120,180 L120,244"></path>
+
+            <rect class="band" x="20" y="228" width="960" height="98" rx="8"></rect>
+            <text class="eb al" x="34" y="222">ASYNCHRONOUS &nbsp;·&nbsp; WORKER &nbsp;·&nbsp; RETRIABLE</text>
+
+            <rect class="n" x="40" y="248" width="166" height="54" rx="6"></rect>
+            <text class="ns" x="123" y="270" text-anchor="middle">Extract text</text>
+            <text class="ns" x="123" y="287" text-anchor="middle">layout-aware</text>
+
+            <rect class="n-a" x="230" y="248" width="166" height="54" rx="6"></rect>
+            <text class="ns" x="313" y="270" text-anchor="middle">LLM → schema</text>
+            <text class="ns" x="313" y="287" text-anchor="middle">structured JSON output</text>
+
+            <rect class="n" x="420" y="248" width="166" height="54" rx="6"></rect>
+            <text class="ns" x="503" y="270" text-anchor="middle">Upsert candidate</text>
+            <text class="ns" x="503" y="287" text-anchor="middle">+ profile version</text>
+
+            <rect class="n-a" x="610" y="248" width="166" height="54" rx="6"></rect>
+            <text class="ns" x="693" y="270" text-anchor="middle">Embed profile text</text>
+            <text class="ns" x="693" y="287" text-anchor="middle">model + version recorded</text>
+
+            <rect class="n-t" x="800" y="248" width="160" height="54" rx="6"></rect>
+            <text class="ns" x="880" y="270" text-anchor="middle">Persist vector</text>
+            <text class="ns" x="880" y="287" text-anchor="middle">status = ready</text>
+
+            <path class="e" d="M206,275 L224,275"></path>
+            <path class="e" d="M396,275 L414,275"></path>
+            <path class="e" d="M586,275 L604,275"></path>
+            <path class="e" d="M776,275 L794,275"></path>
+          </svg>
+        </div>
+        <figcaption><b>Figure 3.</b> Nine steps split across one boundary. The UI polls <code>GET /resumes/{id}/status</code> against the row written in step four, so a partially-processed resume is visible and explainable rather than missing. Amber steps are the ones that call a provider and therefore the ones that need retry and rate-limit policy.</figcaption>
+      </figure>
+
+      <div class="call">
+        <p class="kicker">Retain, don't overwrite</p>
+        <p>New uploads for a known candidate create a new resume version rather than replacing the file. That keeps screening decisions auditable against the document they were made from, and lets you re-run extraction and embedding when the parsing or embedding model changes.</p>
+      </div>
+    </section>
+
+    <!-- 05 ───────────────────────────────────── -->
+    <section id="s5">
+      <div class="shead">
+        <p class="snum">05</p>
+        <h2>Data model</h2>
+      </div>
+      <p class="lede">Candidate-side entities are permanent and grow by version. Job-side entities are per-role, and a screening is a single immutable run against them &mdash; re-running a job produces a new screening, not an edit.</p>
+
+      <figure>
+        <div class="figscroll">
+          <svg class="dg" viewBox="0 0 1000 510" role="img" aria-label="Entity relationship diagram: users own candidates and jobs; candidates have resumes and profiles which have embeddings; jobs have requirements and screenings, which have results referencing candidates, and explanations.">
+            <rect class="n" x="405" y="20" width="190" height="46" rx="6"></rect>
+            <text class="nt" x="420" y="40">users</text>
+            <text class="fld" x="420" y="56">id · name · email · role</text>
+
+            <path class="e-t" d="M470,66 L470,90 L215,90 L215,110"></path>
+            <text class="el" x="228" y="84">1—*</text>
+            <path class="e-a" d="M530,66 L530,90 L785,90 L785,110"></path>
+            <text class="el" x="772" y="84" text-anchor="end">1—*</text>
+
+            <!-- candidate cluster -->
+            <rect class="n-t" x="120" y="112" width="190" height="46" rx="6" stroke-width="2"></rect>
+            <text class="nt" x="135" y="132">candidates</text>
+            <text class="fld" x="135" y="148">id · summary · status</text>
+
+            <path class="e-t" d="M170,158 L170,182 L130,182 L130,196"></path>
+            <text class="el" x="140" y="176">1—*</text>
+            <path class="e-t" d="M260,158 L260,182 L335,182 L335,196"></path>
+            <text class="el" x="325" y="176" text-anchor="end">1—*</text>
+
+            <rect class="n" x="40" y="198" width="180" height="46" rx="6"></rect>
+            <text class="nt" x="54" y="218">resumes</text>
+            <text class="fld" x="54" y="234">file · text · version</text>
+
+            <rect class="n" x="240" y="198" width="200" height="46" rx="6"></rect>
+            <text class="nt" x="254" y="218">candidate_profiles</text>
+            <text class="fld" x="254" y="234">skills · experience · education</text>
+
+            <path class="e-t" d="M220,221 L236,221"></path>
+            <text class="el" x="228" y="212" text-anchor="middle">derived</text>
+
+            <path class="e-t" d="M340,244 L340,282"></path>
+            <text class="el" x="350" y="268">1—1</text>
+            <rect class="n-t" x="240" y="284" width="200" height="46" rx="6"></rect>
+            <text class="nt" x="254" y="304">embeddings</text>
+            <text class="fld" x="254" y="320">vector · model · owner_type</text>
+
+            <!-- job cluster -->
+            <rect class="n-a" x="690" y="112" width="190" height="46" rx="6" stroke-width="2"></rect>
+            <text class="nt" x="705" y="132">jobs</text>
+            <text class="fld" x="705" y="148">title · description · status</text>
+
+            <path class="e-a" d="M730,158 L730,182 L690,182 L690,196"></path>
+            <text class="el" x="700" y="176">1—*</text>
+            <path class="e-a" d="M840,158 L840,182 L890,182 L890,196"></path>
+            <text class="el" x="880" y="176" text-anchor="end">1—*</text>
+
+            <rect class="n" x="580" y="198" width="200" height="46" rx="6"></rect>
+            <text class="nt" x="594" y="218">job_requirements</text>
+            <text class="fld" x="594" y="234">required · preferred · min years</text>
+
+            <rect class="n-a" x="800" y="198" width="170" height="46" rx="6"></rect>
+            <text class="nt" x="814" y="218">screenings</text>
+            <text class="fld" x="814" y="234">status · timestamps</text>
+
+            <path class="e-a" d="M885,244 L885,282"></path>
+            <text class="el" x="895" y="268">1—*</text>
+            <rect class="n-a" x="760" y="284" width="210" height="46" rx="6"></rect>
+            <text class="nt" x="774" y="304">screening_results</text>
+            <text class="fld" x="774" y="320">candidate_id · score · rank</text>
+
+            <path class="e-a" d="M885,330 L885,368"></path>
+            <text class="el" x="895" y="354">1—1</text>
+            <rect class="n-a" x="760" y="370" width="210" height="46" rx="6"></rect>
+            <text class="nt" x="774" y="390">explanations</text>
+            <text class="fld" x="774" y="406">why_match · why_not · model</text>
+
+            <path class="e-t dash" d="M760,307 L700,307 L700,468 L215,468 L215,160"></path>
+            <text class="el" x="450" y="460" text-anchor="middle">screening_results.candidate_id → candidates.id &nbsp;·&nbsp; the only edge crossing the two layers</text>
+          </svg>
+        </div>
+        <figcaption><b>Figure 4.</b> Teal entities are the reusable repository, amber are per-job. The dashed edge is the single foreign key joining them &mdash; a screening result <em>points at</em> a candidate and never modifies one. <code>embeddings.owner_type</code> lets candidate and JD vectors share one table and one index while keeping model and dimension metadata per row, which is what makes a model upgrade a backfill rather than a migration.</figcaption>
+      </figure>
+    </section>
+
+    <!-- 06 ───────────────────────────────────── -->
+    <section id="s6">
+      <div class="shead">
+        <p class="snum">06</p>
+        <h2>Matching and ranking</h2>
+      </div>
+      <p class="lede">Do not ask an LLM to pick five candidates out of a thousand. Narrow the field with cheap, fast filters, spend the expensive reasoning on a small set, and let deterministic code do the final ordering.</p>
+      <p>The funnel is what keeps this affordable. Each stage is cheaper per candidate than the one after it and more selective than the one before, so the LLM &mdash; the only component whose cost is measured in cents rather than microseconds &mdash; sees a bounded number of candidates no matter how large the repository grows.</p>
+
+      <figure>
+        <div class="figscroll">
+          <svg class="dg" viewBox="0 0 1000 510" role="img" aria-label="Funnel diagram: a thousand candidates narrow through SQL filters to about five hundred, ANN retrieval to fifty to a hundred, reranking to twenty, evaluation of the same twenty, then scoring down to five.">
+            <!-- row 1 -->
+            <text class="nt" x="40" y="62">Candidate repository</text>
+            <text class="ns" x="40" y="80">Postgres + pgvector · persistent</text>
+            <rect class="bar-t" x="335" y="48" width="640" height="40" rx="5"></rect>
+            <text class="num onbar" x="655" y="74" text-anchor="middle">1,000+ candidates</text>
+
+            <!-- row 2 -->
+            <text class="nt" x="40" y="138">Hard filters</text>
+            <text class="ns" x="40" y="156">SQL WHERE · must-have skills, location, min years</text>
+            <rect class="bar-a" x="400" y="124" width="510" height="40" rx="5"></rect>
+            <text class="num onbar" x="655" y="150" text-anchor="middle">≈ 500</text>
+
+            <!-- row 3 -->
+            <text class="nt" x="40" y="214">Semantic retrieval</text>
+            <text class="ns" x="40" y="232">pgvector ANN · cosine against the JD vector</text>
+            <rect class="bar-a" x="465" y="200" width="380" height="40" rx="5"></rect>
+            <text class="num onbar" x="655" y="226" text-anchor="middle">50 – 100</text>
+
+            <!-- row 4 -->
+            <text class="nt" x="40" y="290">Reranking</text>
+            <text class="ns" x="40" y="308">cross-encoder · scores the JD–candidate pair directly</text>
+            <rect class="bar-a" x="530" y="276" width="250" height="40" rx="5"></rect>
+            <text class="num onbar" x="655" y="302" text-anchor="middle">20</text>
+
+            <!-- row 5 -->
+            <text class="nt" x="40" y="366">Requirement evaluation</text>
+            <text class="ns" x="40" y="384">LLM + deterministic rules · evidence per requirement</text>
+            <rect class="bar-a" x="530" y="352" width="250" height="40" rx="5"></rect>
+            <text class="num onbar" x="655" y="378" text-anchor="middle">20</text>
+
+            <!-- row 6 -->
+            <text class="nt" x="40" y="442">Scoring and explanation</text>
+            <text class="ns" x="40" y="460">Python weights, then the LLM writes the narrative</text>
+            <rect class="bar-a" x="610" y="428" width="90" height="40" rx="5"></rect>
+            <text class="num onbar" x="655" y="454" text-anchor="middle">5</text>
+
+            <path class="hair" d="M800,284 L812,284 L812,384 L800,384"></path>
+            <text class="el al" x="824" y="316">the LLM only ever</text>
+            <text class="el al" x="824" y="332">sees this set —</text>
+            <text class="el al" x="824" y="348">cost is flat in</text>
+            <text class="el al" x="824" y="364">repository size</text>
+          </svg>
+        </div>
+        <figcaption><b>Figure 5.</b> Bar width is candidate count. The pool does not shrink between reranking and evaluation, and that is deliberate: evaluation exists to produce <em>evidence</em> for twenty candidates, not to cut the field. The cut happens once, in Python, after scoring.</figcaption>
+      </figure>
+
+      <h3>Why each stage exists</h3>
+      <ul class="plain">
+        <li><strong>Hard filters</strong> remove candidates no score should rescue &mdash; a missing non-negotiable skill or an unmet location constraint. Cheap, and it keeps the ANN search honest.</li>
+        <li><strong>ANN retrieval</strong> catches paraphrase and adjacency that keyword matching misses, at a cost of roughly one index scan.</li>
+        <li><strong>Reranking</strong> fixes the known weakness of embedding retrieval: a single vector per candidate blurs detail, while a cross-encoder reads the JD and the candidate together.</li>
+        <li><strong>Evaluation</strong> produces the per-requirement verdicts and quotes that the score and the explanation are both built from.</li>
+      </ul>
+    </section>
+
+    <!-- 07 ───────────────────────────────────── -->
+    <section id="s7">
+      <div class="shead">
+        <p class="snum">07</p>
+        <h2>Scoring and explainability</h2>
+      </div>
+      <p class="lede">The LLM never assigns the overall percentage. It supplies evidence; application logic turns evidence into a number using weights you can read, print, and defend.</p>
+      <p>This split is what makes the score reproducible. Given the same evidence, the same weights produce the same score every time &mdash; so when a hiring manager asks why one candidate outranked another, the answer is arithmetic over cited evidence rather than a model's mood.</p>
+
+      <figure>
+        <div class="figscroll">
+          <svg class="dg" viewBox="0 0 1000 400" role="img" aria-label="Diagram: an LLM evaluator, deterministic rules and embedding similarity feed a Python scoring engine with five weighted categories, which outputs a score and rank; the explanation generator receives only the structured evidence.">
+            <path class="e-a dash" d="M145,58 L145,18 L690,18 L690,192 L714,192"></path>
+            <text class="el al" x="420" y="12" text-anchor="middle">evidence only — the explainer never sees the resume file, and cannot invent qualifications</text>
+
+            <rect class="n-a" x="30" y="60" width="230" height="76" rx="6"></rect>
+            <text class="nt" x="46" y="84">LLM evaluator</text>
+            <text class="ns" x="46" y="102">verdict + quoted evidence</text>
+            <text class="ns" x="46" y="120">per requirement · never a total</text>
+
+            <rect class="n-t" x="30" y="170" width="230" height="76" rx="6"></rect>
+            <text class="nt" x="46" y="194">Deterministic rules</text>
+            <text class="ns" x="46" y="212">years vs required years</text>
+            <text class="ns" x="46" y="230">degree and certification checks</text>
+
+            <rect class="n-t" x="30" y="280" width="230" height="58" rx="6"></rect>
+            <text class="nt" x="46" y="304">Embedding similarity</text>
+            <text class="ns" x="46" y="322">cosine(JD, candidate)</text>
+
+            <path class="e" d="M260,98 L314,98"></path>
+            <path class="e" d="M260,208 L314,208"></path>
+            <path class="e" d="M260,309 L314,309"></path>
+
+            <!-- engine -->
+            <text class="eb tl" x="318" y="30">SCORING ENGINE &nbsp;·&nbsp; PYTHON, DETERMINISTIC</text>
+            <rect class="n-t" x="318" y="40" width="340" height="320" rx="8" stroke-width="2"></rect>
+
+            <text class="ns" x="334" y="82">Required skills</text>
+            <text class="ns wpct" x="642" y="82" text-anchor="end">40%</text>
+            <rect class="bar-bg" x="334" y="90" width="290" height="8" rx="4"></rect>
+            <rect class="bar-t" x="334" y="90" width="290" height="8" rx="4"></rect>
+
+            <text class="ns" x="334" y="138">Experience</text>
+            <text class="ns wpct" x="642" y="138" text-anchor="end">25%</text>
+            <rect class="bar-bg" x="334" y="146" width="290" height="8" rx="4"></rect>
+            <rect class="bar-t" x="334" y="146" width="181" height="8" rx="4"></rect>
+
+            <text class="ns" x="334" y="194">Responsibilities / JD alignment</text>
+            <text class="ns wpct" x="642" y="194" text-anchor="end">20%</text>
+            <rect class="bar-bg" x="334" y="202" width="290" height="8" rx="4"></rect>
+            <rect class="bar-t" x="334" y="202" width="145" height="8" rx="4"></rect>
+
+            <text class="ns" x="334" y="250">Education / certifications</text>
+            <text class="ns wpct" x="642" y="250" text-anchor="end">10%</text>
+            <rect class="bar-bg" x="334" y="258" width="290" height="8" rx="4"></rect>
+            <rect class="bar-t" x="334" y="258" width="72" height="8" rx="4"></rect>
+
+            <text class="ns" x="334" y="306">Semantic similarity</text>
+            <text class="ns wpct" x="642" y="306" text-anchor="end">5%</text>
+            <rect class="bar-bg" x="334" y="314" width="290" height="8" rx="4"></rect>
+            <rect class="bar-t" x="334" y="314" width="36" height="8" rx="4"></rect>
+
+            <text class="ns" x="334" y="348">weights live in config, not code</text>
+
+            <path class="e" d="M658,92 L714,92"></path>
+
+            <rect class="n-t" x="718" y="60" width="250" height="64" rx="6"></rect>
+            <text class="nt" x="734" y="86">Score 0–100 + rank</text>
+            <text class="ns" x="734" y="106">reproducible from evidence</text>
+
+            <path class="e" d="M843,124 L843,160"></path>
+
+            <rect class="n-a" x="718" y="162" width="250" height="64" rx="6"></rect>
+            <text class="nt" x="734" y="188">Explanation generator</text>
+            <text class="ns" x="734" y="208">LLM · prose from evidence</text>
+
+            <path class="e" d="M843,226 L843,262"></path>
+
+            <rect class="n-a" x="718" y="264" width="250" height="74" rx="6"></rect>
+            <text class="nt" x="734" y="290">Why match / Why not</text>
+            <text class="ns" x="734" y="308">shown side by side in the UI</text>
+            <text class="ns" x="734" y="326">recruiter can override</text>
+          </svg>
+        </div>
+        <figcaption><b>Figure 6.</b> Two guardrails are structural rather than prompt-level. The scoring engine is the only writer of the score, and the explanation generator's input is the evidence record (dashed path) &mdash; it has no access to the resume text, so it has nothing to invent from.</figcaption>
+      </figure>
+
+      <div class="cols">
+        <div>
+          <h3>Why match</h3>
+          <ul class="plain">
+            <li>Required skills found, with the line of the resume they came from</li>
+            <li>Relevant experience meets or exceeds the requirement</li>
+            <li>Responsibilities and projects that align with the role</li>
+            <li>Preferred skills present</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Why not &mdash; gaps</h3>
+          <ul class="plain gap">
+            <li>Required skills not found anywhere in the profile</li>
+            <li>Experience below the stated requirement</li>
+            <li>Preferred skills missing</li>
+            <li>Evidence unclear or insufficient to judge</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="call warn">
+        <p class="kicker">Non-negotiable</p>
+        <p>The explanation model receives structured evaluation evidence and nothing else. It must not invent qualifications, experience, certifications, or skills &mdash; and the fourth gap category exists so that "we could not tell" is a first-class answer instead of a guess.</p>
+      </div>
+    </section>
+
+    <!-- 08 ───────────────────────────────────── -->
+    <section id="s8">
+      <div class="shead">
+        <p class="snum">08</p>
+        <h2>API surface</h2>
+      </div>
+      <p class="lede">Two long-running operations &mdash; upload and screening &mdash; both follow the same shape: accept, return an id, expose status, serve results separately.</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th class="mono">Method &amp; endpoint</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">POST /api/v1/auth/login</td><td class="dim">Recruiter authentication</td></tr>
+            <tr><td class="mono">POST /api/v1/resumes/upload</td><td class="dim">Upload one or more resumes &mdash; returns 202 and ids</td></tr>
+            <tr><td class="mono">GET /api/v1/resumes/{id}/status</td><td class="dim">Ingestion progress and failure reason</td></tr>
+            <tr><td class="mono">GET /api/v1/candidates</td><td class="dim">Search and list the candidate repository</td></tr>
+            <tr><td class="mono">GET /api/v1/candidates/{id}</td><td class="dim">Profile, resume versions, parsed detail</td></tr>
+            <tr><td class="mono">POST /api/v1/jobs</td><td class="dim">Create a recruitment from a JD &mdash; parses requirements</td></tr>
+            <tr><td class="mono">GET /api/v1/jobs/{id}</td><td class="dim">Job with its structured requirements</td></tr>
+            <tr><td class="mono">POST /api/v1/screenings</td><td class="dim">Start a matching run for a job &mdash; returns 202</td></tr>
+            <tr><td class="mono">GET /api/v1/screenings/{id}</td><td class="dim">Screening status and stage</td></tr>
+            <tr><td class="mono">GET /api/v1/screenings/{id}/results</td><td class="dim">Ranked candidates, score breakdown, explanations</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="margin-top:22px">The Next.js client generates its types from the FastAPI OpenAPI schema, so a contract change surfaces as a TypeScript error rather than a runtime surprise.</p>
+    </section>
+
+    <!-- 09 ───────────────────────────────────── -->
+    <section id="s9">
+      <div class="shead">
+        <p class="snum">09</p>
+        <h2>Trust boundaries</h2>
+      </div>
+      <p class="lede">Resumes are among the most sensitive documents a company holds. Nothing in the data tier is reachable from the public internet, and every AI provider connection is outbound-only.</p>
+
+      <figure>
+        <div class="figscroll">
+          <svg class="dg" viewBox="0 0 1000 400" role="img" aria-label="Diagram of four trust zones: the public browser, the Vercel edge, a private VPC holding FastAPI, workers and the data stores, and third-party AI APIs reached by outbound calls only. There is no public path to the data stores.">
+            <rect class="hair dash" x="20" y="40" width="200" height="290" rx="8"></rect>
+            <text class="eb" x="34" y="32">PUBLIC</text>
+            <rect class="n" x="45" y="92" width="150" height="60" rx="6"></rect>
+            <text class="ns" x="120" y="118" text-anchor="middle">Recruiter browser</text>
+            <text class="ns" x="120" y="135" text-anchor="middle">session cookie / JWT</text>
+
+            <rect class="hair dash" x="250" y="40" width="200" height="290" rx="8"></rect>
+            <text class="eb" x="264" y="32">EDGE</text>
+            <rect class="n" x="275" y="92" width="150" height="60" rx="6"></rect>
+            <text class="ns" x="350" y="118" text-anchor="middle">Next.js on Vercel</text>
+            <text class="ns" x="350" y="135" text-anchor="middle">no direct DB access</text>
+
+            <rect class="hair dash" x="480" y="40" width="290" height="290" rx="8"></rect>
+            <text class="eb tl" x="494" y="32">PRIVATE VPC</text>
+            <rect class="n" x="505" y="88" width="240" height="62" rx="6"></rect>
+            <text class="ns" x="625" y="114" text-anchor="middle">FastAPI + workers</text>
+            <text class="ns" x="625" y="131" text-anchor="middle">holds all provider credentials</text>
+
+            <rect class="n-t" x="505" y="180" width="240" height="120" rx="6"></rect>
+            <text class="nt" x="521" y="206">Data tier</text>
+            <text class="ns" x="521" y="228">PostgreSQL + pgvector</text>
+            <text class="ns" x="521" y="248">S3 bucket · no public access</text>
+            <text class="ns" x="521" y="268">Redis queue</text>
+            <text class="ns" x="521" y="290">encrypted at rest</text>
+
+            <rect class="hair dash" x="800" y="40" width="180" height="290" rx="8"></rect>
+            <text class="eb al" x="814" y="32">THIRD-PARTY APIS</text>
+            <rect class="n-a" x="815" y="88" width="150" height="52" rx="6"></rect>
+            <text class="ns" x="890" y="119" text-anchor="middle">LLM</text>
+            <rect class="n-a" x="815" y="158" width="150" height="52" rx="6"></rect>
+            <text class="ns" x="890" y="189" text-anchor="middle">Embeddings</text>
+            <rect class="n-a" x="815" y="228" width="150" height="52" rx="6"></rect>
+            <text class="ns" x="890" y="259" text-anchor="middle">Reranker</text>
+
+            <path class="e" d="M195,120 L269,120"></path>
+            <text class="el" x="232" y="110" text-anchor="middle">HTTPS</text>
+            <path class="e" d="M425,120 L499,120"></path>
+            <text class="el" x="462" y="110" text-anchor="middle">REST · JWT</text>
+            <path class="e" d="M625,150 L625,174"></path>
+
+            <path class="e-a" d="M745,116 L809,114"></path>
+            <path class="e-a" d="M745,124 L809,184"></path>
+            <path class="e-a" d="M745,130 L809,254"></path>
+            <text class="el al" x="758" y="156">egress only</text>
+
+            <path class="e-c dash nom" d="M120,152 L120,356 L560,356 L560,306"></path>
+            <path class="e-c nom" d="M330,346 L352,366"></path>
+            <path class="e-c nom" d="M352,346 L330,366"></path>
+            <text class="el cl" x="376" y="360">no public route to resumes or candidate PII</text>
+          </svg>
+        </div>
+        <figcaption><b>Figure 7.</b> Original resume files are served only through short-lived signed URLs minted by the API after an authorization check &mdash; the bucket itself has no public read path, and the browser never holds a storage credential.</figcaption>
+      </figure>
+
+      <div class="cols">
+        <div>
+          <h3>Controls</h3>
+          <ul class="plain">
+            <li>HTTPS everywhere; encryption at rest and in transit</li>
+            <li>Validate file type and size, then malware-scan before processing</li>
+            <li>Role-based access control for recruiter and admin</li>
+            <li>Audit log for every screening decision and override</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Fairness and retention</h3>
+          <ul class="plain">
+            <li>Protected characteristics excluded from ranking inputs</li>
+            <li>Recruiters can review and override every AI recommendation</li>
+            <li>Defined retention and deletion policy per candidate</li>
+            <li>Screening results are immutable, so a decision stays reconstructible</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10 ──────────────────────────────────── -->
+    <section id="s10">
+      <div class="shead">
+        <p class="snum">10</p>
+        <h2>Decisions, and what is deliberately out of V1</h2>
+      </div>
+      <p class="lede">Every item excluded here has a clear path in. The point of V1 is to avoid paying for flexibility before there is anything to flex.</p>
+
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Question</th><th>V1 decision</th><th>Reason</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">Vector storage</td><td class="dim">pgvector inside Postgres</td><td class="dim">This is a relational candidate-management app that also needs semantic search. One database means SQL filters compose with vector similarity in a single query, and transactions stay simple. Move to a dedicated vector DB when scale &mdash; not taste &mdash; demands it.</td></tr>
+            <tr><td class="mono">LangChain</td><td class="dim">Not required</td><td class="dim">Direct provider calls and plain Python services cover the whole deterministic pipeline without a framework's abstractions in the way.</td></tr>
+            <tr><td class="mono">LangGraph</td><td class="dim">Not required</td><td class="dim">The V1 flow is a predictable workflow, not an autonomous agent. Introduce it when the product genuinely needs branching, human approval gates, and long-running stateful runs.</td></tr>
+            <tr><td class="mono">Kubernetes / microservices</td><td class="dim">Excluded</td><td class="dim">Operational cost with no V1 benefit. The FastAPI app stays modular so components can be extracted later.</td></tr>
+            <tr><td class="mono">Scoring weights</td><td class="dim">Config, fixed per deployment</td><td class="dim">Configurable weights are a product feature that needs a UI, an audit trail, and per-job overrides. Ship the mechanism first.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Where it goes next</h3>
+      <ul class="plain">
+        <li>Recruiter-configurable scoring weights, per job and per organization</li>
+        <li>Candidate deduplication and identity resolution across resume versions</li>
+        <li>Interview question generation and candidate comparison workflows</li>
+        <li>Advanced reranking, plus ranking-quality monitoring against recruiter overrides</li>
+        <li>A stateful agent layer &mdash; the point at which LangGraph starts to earn its place</li>
+      </ul>
+
+      <div class="call">
+        <p class="kicker">The architecture in one line</p>
+        <p>Upload once &rarr; build candidate intelligence &rarr; store in a reusable repository &rarr; match against any future JD &rarr; retrieve &rarr; rerank &rarr; evaluate &rarr; score &rarr; explain.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <span>Recruitment Agent &mdash; architecture reference, V1</span>
+    <span>Next.js · FastAPI · PostgreSQL + pgvector</span>
+  </footer>
+</div>
+
+<script>
+  (function () {
+    var links = Array.prototype.slice.call(document.querySelectorAll('.rail a'));
+    var map = {};
+    links.forEach(function (a) {
+      var id = a.getAttribute('href').slice(1);
+      var el = document.getElementById(id);
+      if (el) { map[id] = a; }
+    });
+    var sections = Object.keys(map).map(function (id) { return document.getElementById(id); });
+    if (!('IntersectionObserver' in window) || !sections.length) { return; }
+
+    var visible = {};
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { visible[e.target.id] = e.isIntersecting ? e.intersectionRatio : 0; });
+      var best = null, bestRatio = 0;
+      Object.keys(visible).forEach(function (id) {
+        if (visible[id] > bestRatio) { bestRatio = visible[id]; best = id; }
+      });
+      links.forEach(function (a) { a.classList.remove('on'); });
+      if (best && map[best]) { map[best].classList.add('on'); }
+    }, { rootMargin: '-10% 0px -55% 0px', threshold: [0, 0.15, 0.35, 0.6, 1] });
+
+    sections.forEach(function (s) { obs.observe(s); });
+  })();
+</script>

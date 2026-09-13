@@ -1,0 +1,32 @@
+# ── node / next ───────────────────────────────
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+.vercel/
+
+# ── python ────────────────────────────────────
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# ── env ───────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── local resume storage (never commit candidate files) ──
+backend/uploads/*
+!backend/uploads/.gitkeep
+storage/
+
+# ── editors / os ──────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

@@ -1,0 +1,120 @@
+# Golden set for search-quality evaluation (architecture doc §27).
+#
+# Grades:
+#   2  strong match — you would shortlist this person
+#   1  partial      — plausible, worth a look
+#   0  not relevant — should not surface
+#
+# Only list candidates you have judged. Anyone omitted is treated as grade 0, so a
+# job with no relevant candidates is a legitimate and useful entry — it tests that
+# the system does NOT surface people confidently.
+#
+# Names are matched case-insensitively against candidates you own. Names rather than
+# UUIDs so this file stays hand-editable and survives a database reset.
+#
+# ── IMPORTANT ────────────────────────────────────────────────────────────────
+# These grades were drafted from profile summaries, not by reading the resumes.
+# They are a starting point to be corrected, not ground truth. A golden set is only
+# worth what the judgement in it is worth.
+# ─────────────────────────────────────────────────────────────────────────────
+
+recruiter: navinsandhanaraj@gmail.com
+
+jobs:
+  - title: AI Engineer
+    # GenAI/LLM role: Python, RAG, embeddings, prompt engineering, LLM providers.
+    candidates:
+      - name: SANDHANARAJ NAVIN C
+        grade: 2
+        why: OpenAI, Gemini, Bedrock, LangChain/LangGraph — direct LLM engineering.
+      - name: AKASH PG
+        grade: 2
+        why: LLMs, RAG pipelines, agentic AI, tool-calling. Squarely the role.
+      - name: J NEVEKA BERL
+        grade: 1
+        why: Real LLM exposure (Gemini, Claude, Vertex, HF) but data-engineering shaped.
+      - name: A. SHARMILA
+        grade: 1
+        why: Right domain (ML, DL, GenAI, NLP) but 0.4 years — far too junior.
+      - name: SURYA SOMASUNDARAM
+        grade: 0
+        why: DevOps/cloud. No LLM work.
+      - name: KARIKALAN KANAGAVEL
+        grade: 0
+        why: Frontend. Unrelated.
+
+  - title: Computer Vision Engineer
+    # Deliberately a near-miss job: nobody in this pool has production CV experience,
+    # and the JD demands 5+ years against a pool topping out at 2.8. The correct
+    # behaviour is to surface almost nothing with confidence.
+    candidates:
+      - name: A. SHARMILA
+        grade: 1
+        why: Lists Computer Vision and Deep Learning, but 0.4 years against a 5-year bar.
+      - name: SANDHANARAJ NAVIN C
+        grade: 0
+        why: GenAI, not vision. No PyTorch/YOLO/segmentation.
+      - name: AKASH PG
+        grade: 0
+        why: LLM work, no vision.
+      - name: J NEVEKA BERL
+        grade: 0
+      - name: SURYA SOMASUNDARAM
+        grade: 0
+      - name: KARIKALAN KANAGAVEL
+        grade: 0
+
+  - title: Technical Artist - Tools/Automation
+    # Python plus generative-AI tooling (ComfyUI, SwarmUI, A1111), low-code.
+    candidates:
+      - name: SANDHANARAJ NAVIN C
+        grade: 1
+        why: Python and generative AI, but no evidence of the artist toolchain.
+      - name: AKASH PG
+        grade: 1
+        why: Generative AI background; tooling unproven.
+      - name: A. SHARMILA
+        grade: 1
+        why: Generative AI listed; very junior.
+      - name: J NEVEKA BERL
+        grade: 0
+      - name: SURYA SOMASUNDARAM
+        grade: 0
+      - name: KARIKALAN KANAGAVEL
+        grade: 0
+
+  - title: AWS Senior Developer_JL4
+    # AWS, IaC, Terraform/CDK, Bash, plus Bedrock/SageMaker.
+    candidates:
+      - name: SURYA SOMASUNDARAM
+        grade: 2
+        why: AWS across EC2, ECS, Lambda, API Gateway, DynamoDB. The clear match.
+      - name: SANDHANARAJ NAVIN C
+        grade: 1
+        why: AWS Bedrock only — the AI service, not the infrastructure work.
+      - name: AKASH PG
+        grade: 0
+      - name: J NEVEKA BERL
+        grade: 0
+      - name: A. SHARMILA
+        grade: 0
+      - name: KARIKALAN KANAGAVEL
+        grade: 0
+
+  - title: Principal Azure Data Engineer (12 to 15 yrs) (Python / PySpark / SQL/ DataBricks)
+    # Second near-miss: 10+ years, Azure, Databricks, healthcare domain. The pool
+    # tops out at 2.8 years and nobody has Azure.
+    candidates:
+      - name: J NEVEKA BERL
+        grade: 1
+        why: Data engineering with Python and SQL, but wrong cloud and a decade short.
+      - name: SANDHANARAJ NAVIN C
+        grade: 0
+      - name: AKASH PG
+        grade: 0
+      - name: SURYA SOMASUNDARAM
+        grade: 0
+      - name: A. SHARMILA
+        grade: 0
+      - name: KARIKALAN KANAGAVEL
+        grade: 0

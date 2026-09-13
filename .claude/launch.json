@@ -1,0 +1,31 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--prefix",
+        "frontend"
+      ],
+      "port": 3000
+    },
+    {
+      "name": "api",
+      "runtimeExecutable": "backend/.venv/Scripts/python.exe",
+      "runtimeArgs": [
+        "-m",
+        "uvicorn",
+        "app.main:app",
+        "--reload",
+        "--app-dir",
+        "backend",
+        "--port",
+        "8001"
+      ],
+      "port": 8001
+    }
+  ]
+}

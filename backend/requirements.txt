@@ -1,0 +1,41 @@
+# Runtime dependencies.
+#
+# Install:  python -m pip install -r requirements.txt
+# Dev/test: python -m pip install -r requirements-dev.txt
+
+# ── web ───────────────────────────────────────────────────────────────────
+fastapi>=0.115
+uvicorn[standard]>=0.34
+python-multipart>=0.0.20
+
+# ── database ──────────────────────────────────────────────────────────────
+sqlalchemy>=2.0.36
+psycopg[binary]>=3.2
+pgvector>=0.3.6
+alembic>=1.14
+
+# ── validation / settings ─────────────────────────────────────────────────
+pydantic>=2.10
+pydantic-settings>=2.7
+email-validator>=2.2      # required by pydantic EmailStr
+
+# ── auth ──────────────────────────────────────────────────────────────────
+pyjwt>=2.10
+passlib[bcrypt]>=1.7.4
+bcrypt<4.1
+
+# ── document parsing ──────────────────────────────────────────────────────
+pypdf>=5.1
+python-docx>=1.1
+
+# ── queue ─────────────────────────────────────────────────────────────────
+celery[redis]>=5.4
+redis>=5.2
+
+# ── AI (Gemini on Vertex AI, architecture doc §16/§29) ────────────────────
+google-genai>=1.0
+httpx>=0.28
+
+# Golden-set format for the search-quality harness (doc §27). Already present
+# transitively via celery, pinned here because the harness imports it directly.
+pyyaml>=6.0

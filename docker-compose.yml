@@ -1,0 +1,35 @@
+# Host ports are configurable so this stack can run alongside other projects that
+# already publish 5432/6379. Set POSTGRES_PORT / REDIS_PORT in the root .env, and
+# match them in backend/.env (DATABASE_URL, REDIS_URL).
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    container_name: recruitment-db
+    environment:
+      POSTGRES_USER: recruitment
+      POSTGRES_PASSWORD: recruitment
+      POSTGRES_DB: recruitment
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U recruitment -d recruitment"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: recruitment-redis
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  db-data:
