@@ -5,14 +5,16 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, datetime, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import current_user
 from app.db.database import get_session
 from app.db.models import Application, Screening, ScreeningResult, User
+from app.parsers import ExtractionError, extract_text
 from app.schemas import (
+    ExtractedDescription,
     JobCreateRequest,
     JobDetailResponse,
     JobListItem,
@@ -24,8 +26,13 @@ from app.schemas import (
 )
 from app.services import analytics_service, job_service
 from app.services.scoring import BAND_STRONG_HIRE as STRONG_MATCH_SCORE
+from app.utils.file_utils import UploadRejected, validate_upload
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
+
+#: Mirrors JobCreateRequest.description's min_length. An upload that cannot clear the
+#: create endpoint's bar should be refused while the filename is still in hand.
+MIN_DESCRIPTION_CHARS = 40
 
 
 @router.post("", response_model=JobDetailResponse, status_code=status.HTTP_201_CREATED)
@@ -50,6 +57,52 @@ def create_job(
         job=JobOut.model_validate(job),
         requirement=RequirementOut.model_validate(job.requirement) if job.requirement else None,
     )
+
+
+@router.post("/extract", response_model=ExtractedDescription)
+def extract_description(
+    file: UploadFile = File(...),
+    _user: User = Depends(current_user),
+) -> ExtractedDescription:
+    """Read a job description out of a PDF, DOCX or text file.
+
+    Extraction only — no job is created and the file is not stored. The text goes
+    back to the recruiter to read and edit, and they create the job from it as if
+    they had pasted it. That ordering is the point: PDF extraction interleaves
+    two-column layouts and flattens tables, and the resulting requirements and JD
+    vector are only as good as the text they came from.
+
+    Unlike a resume, a JD has no candidate to belong to and nothing later re-reads
+    the original, so there is nothing to retain.
+    """
+    filename = file.filename or "job-description"
+    try:
+        data = file.file.read()
+        validate_upload(filename, file.content_type or "", data)
+        text = extract_text(data, file.content_type or "", filename)
+    except UploadRejected as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, f"{filename}: {exc}") from exc
+    except ExtractionError as exc:
+        # Named, because the recruiter chose a file rather than filling in a field —
+        # and a JD often arrives as one of several attachments on the same mail.
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_ENTITY, f"{filename}: {exc}"
+        ) from exc
+    finally:
+        file.file.close()
+
+    # The create endpoint requires 40 characters. Anything shorter is refused here,
+    # while the filename is still in hand, rather than at create against a field the
+    # recruiter never typed in. The extractor's own "almost no text" guard catches
+    # the emptiest files first; this covers a short but genuine extraction.
+    if len(text.strip()) < MIN_DESCRIPTION_CHARS:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            f"{filename}: yielded only {len(text.strip())} characters of text — "
+            f"a job description needs at least {MIN_DESCRIPTION_CHARS}.",
+        )
+
+    return ExtractedDescription(text=text, filename=filename, characters=len(text))
 
 
 @router.get("", response_model=list[JobListItem])

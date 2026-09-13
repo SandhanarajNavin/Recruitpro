@@ -55,6 +55,7 @@ from app.schemas.interview import (
     InterviewUpdateRequest,
 )
 from app.schemas.job import (
+    ExtractedDescription,
     JobCreateRequest,
     JobDetailResponse,
     JobListItem,
@@ -117,6 +118,7 @@ __all__ = [
     "InterviewListResponse",
     "InterviewOut",
     "InterviewUpdateRequest",
+    "ExtractedDescription",
     "JobCreateRequest",
     "JobDetailResponse",
     "JobStatsOut",

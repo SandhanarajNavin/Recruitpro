@@ -314,6 +314,17 @@ export const api = {
   createJob: (body: { title?: string; description: string; location?: string }) =>
     request<JobDetail>("/api/v1/jobs", { method: "POST", body: JSON.stringify(body) }),
 
+  // Reads a JD out of a PDF/DOCX/text file. Returns the text rather than a job:
+  // extraction is lossy in ways only the recruiter can see, so they edit it first.
+  extractJobDescription: (file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+    return request<{ text: string; filename: string; characters: number }>(
+      "/api/v1/jobs/extract",
+      { method: "POST", body: form },
+    );
+  },
+
   startScreening: (jobId: string) =>
     request<ScreeningStatusResponse>("/api/v1/screenings", {
       method: "POST",

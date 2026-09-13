@@ -16,6 +16,21 @@ class JobCreateRequest(BaseModel):
     location: str | None = None
 
 
+class ExtractedDescription(BaseModel):
+    """Text read out of an uploaded JD file, before any job exists.
+
+    Deliberately not a created job. The recruiter gets the text back to read and
+    correct first, because extraction from a PDF is lossy in ways only they can see
+    — a two-column layout interleaved, a table flattened, a header repeated on every
+    page. Creating the job from unreviewed text would bake that into the parsed
+    requirements and the JD vector.
+    """
+
+    text: str
+    filename: str
+    characters: int
+
+
 class RequirementOut(ORMModel):
     seniority: str | None
     min_years_experience: int
