@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { IconPlus, IconSend } from "@/components/Icons";
 import { ApiError, api } from "@/lib/api";
 import type { ChatMessageRow, Conversation } from "@/lib/types";
@@ -26,15 +28,56 @@ type PendingRow = Pick<ChatMessageRow, "role" | "content" | "tool_name"> & {
 };
 
 function Bubble({ row }: { row: PendingRow }) {
+  const isUser = row.role === "user";
   return (
-    <div className={row.role === "user" ? "chat-row chat-row-user" : "chat-row"}>
-      <div className={row.role === "user" ? "bubble bubble-user" : "bubble"}>
-        {row.content.split("\n").map((line, index) =>
-          line.trim() ? <p key={index}>{line}</p> : <br key={index} />,
+    <div className={isUser ? "chat-row chat-row-user" : "chat-row"}>
+      <div className={isUser ? "bubble bubble-user" : "bubble"}>
+        {isUser ? (
+          // The recruiter typed this. Rendering their own text as markdown would
+          // mangle a query that happens to contain * or _ — a C++ or *nix search.
+          row.content.split("\n").map((line, index) =>
+            line.trim() ? <p key={index}>{line}</p> : <br key={index} />,
+          )
+        ) : (
+          // The model writes markdown whether or not it is asked to: bold names,
+          // bullet lists, quoted passages. Splitting on newlines showed the syntax
+          // verbatim, so a shortlist arrived as "**Kevin Thompson**: ...".
+          //
+          // Raw HTML is deliberately not enabled (no rehype-raw). Assistant text
+          // quotes resume passages back, which is candidate-supplied content, and
+          // react-markdown escapes it by default.
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              a: ({ href, children }) => (
+                <a href={href} target="_blank" rel="noopener noreferrer">
+                  {children}
+                </a>
+              ),
+            }}
+          >
+            {row.content}
+          </ReactMarkdown>
         )}
       </div>
     </div>
   );
+}
+
+/**
+ * What to say while a turn is in flight, based on how long it has actually taken.
+ *
+ * A turn is one synchronous request, so there is no progress to report from the
+ * server — but elapsed time is honest on its own. Most turns are a lookup and a
+ * reply in a few seconds; only a matching run approaches a minute. Warning about
+ * that up front made every quick answer feel like something had hung, and left
+ * nothing to say when a turn genuinely did run long.
+ */
+function waitingMessage(seconds: number): string {
+  if (seconds < 5) return "Thinking…";
+  if (seconds < 15) return "Still working…";
+  if (seconds < 40) return "Reading the repository — this one is taking a little longer.";
+  return "Still going. A full matching run can take a minute or more.";
 }
 
 export default function AssistantPage() {
@@ -61,6 +104,23 @@ export default function AssistantPage() {
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [rows, busy]);
+
+  // Seconds the current turn has been running, so the waiting message can match
+  // reality. Most turns are a single lookup and answer in a few seconds; only a
+  // matching run takes a minute, and saying so on every turn made the quick ones
+  // feel broken. Reset on each turn rather than accumulated across the session.
+  const [elapsed, setElapsed] = useState(0);
+  useEffect(() => {
+    if (!busy) {
+      setElapsed(0);
+      return;
+    }
+    const started = Date.now();
+    const timer = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - started) / 1000));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [busy]);
 
   async function openConversation(id: string) {
     setError(null);
@@ -193,7 +253,7 @@ export default function AssistantPage() {
                 <span className="dot" />
                 <span className="dot" />
                 <span className="dot" />
-                <em>Working — a matching run can take a minute.</em>
+                <em>{waitingMessage(elapsed)}</em>
               </div>
             </div>
           ) : null}
