@@ -39,7 +39,20 @@ router = APIRouter(prefix="/candidates", tags=["candidates"])
 @router.get("", response_model=CandidateListResponse)
 def list_candidates(
     q: str | None = Query(None, description="Match on name or email"),
-    skill: str | None = Query(None, description="Exact skill, case-insensitive"),
+    skill: str | None = Query(
+        None,
+        description=(
+            "Skill, case-insensitive. Resolved through the skill taxonomy as well as "
+            "the parsed profile, so 'React' also matches a resume that said 'React.js'."
+        ),
+    ),
+    location: str | None = Query(
+        None,
+        description=(
+            "Where the candidate is, matched as a substring — 'Chennai' finds "
+            "'Chennai, India'. Candidates with no location recorded are excluded."
+        ),
+    ),
     min_years: float | None = Query(None, ge=0, le=60),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
@@ -51,6 +64,7 @@ def list_candidates(
         user.id,
         query=q,
         skill=skill,
+        location=location,
         min_years=min_years,
         limit=limit,
         offset=offset,

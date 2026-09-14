@@ -339,3 +339,41 @@ class TestLocationFilter:
 
         assert total == 1
         assert rows[0].full_name == "Chennai React"
+
+
+class TestLocationReachesTheEndpoint:
+    """The service filter is useless if the HTTP layer drops the parameter.
+
+    It did: location was wired into candidate_service and the assistant tool but not
+    into GET /candidates, so the REST API silently ignored it and returned everyone.
+    An unknown query parameter is not an error in FastAPI, so nothing failed — the
+    filter just did nothing, which is worse than a 4xx.
+    """
+
+    def test_the_rest_endpoint_applies_the_location_filter(self, session, recruiter):
+        from fastapi.testclient import TestClient
+
+        from app.main import app
+
+        here = _candidate(session, recruiter.id, "Chennai Person", "Engineer", "Engineer")
+        here.location = "Chennai, India"
+        away = _candidate(session, recruiter.id, "Berlin Person", "Engineer", "Engineer")
+        away.location = "Berlin, Germany"
+        session.commit()
+
+        client = TestClient(app)
+        token = client.post(
+            "/api/v1/auth/login",
+            json={"email": recruiter.email, "password": "test-password"},
+        ).json()["access_token"]
+
+        response = client.get(
+            "/api/v1/candidates",
+            params={"location": "Chennai"},
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
+        assert response.status_code == 200, response.text
+        body = response.json()
+        assert body["total"] == 1, "the endpoint ignored ?location and returned everyone"
+        assert body["items"][0]["full_name"] == "Chennai Person"
