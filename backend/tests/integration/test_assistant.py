@@ -153,7 +153,7 @@ class TestIsolation:
     ):
         bob_tools = {tool.__name__: tool for tool in build_toolset(session, bob)}
         with pytest.raises(ToolError):
-            bob_tools["get_candidate"](candidate_id=str(alice_candidate.id))
+            bob_tools["get_candidate"](candidate=str(alice_candidate.id))
 
     def test_listing_shows_only_your_own(self, session, bob, alice_candidate):
         bob_tools = {tool.__name__: tool for tool in build_toolset(session, bob)}
@@ -176,16 +176,50 @@ class TestIsolation:
 
 class TestReads:
     def test_get_candidate_returns_the_profile(self, alice_tools, alice_candidate):
-        detail = alice_tools["get_candidate"](candidate_id=str(alice_candidate.id))
+        detail = alice_tools["get_candidate"](candidate=str(alice_candidate.id))
         assert detail["name"] == alice_candidate.full_name
         assert isinstance(detail["skills"], list)
 
-    def test_get_candidate_rejects_a_malformed_id(self, alice_tools):
-        with pytest.raises(ToolError, match="not a valid"):
-            alice_tools["get_candidate"](candidate_id="not-a-uuid")
+    def test_get_candidate_accepts_a_name(self, alice_tools, alice_candidate):
+        """Models do not reproduce UUIDs reliably — a real transcript had the
+        assistant read a candidate, then pass two different fabricated ids for them
+        on the next two turns. A name needs no recall."""
+        detail = alice_tools["get_candidate"](candidate=alice_candidate.full_name)
+        assert detail["candidate_id"] == str(alice_candidate.id)
+
+    def test_a_partial_name_resolves(self, alice_tools, alice_candidate):
+        surname = alice_candidate.full_name.split()[-1]
+        detail = alice_tools["get_candidate"](candidate=surname)
+        assert detail["candidate_id"] == str(alice_candidate.id)
+
+    def test_an_unmatched_reference_steers_back_to_a_lookup(self, alice_tools):
+        """The message matters as much as the failure: the model reported the old
+        wording to the recruiter as fact, telling them a candidate it had just been
+        reading was not in the repository."""
+        with pytest.raises(ToolError, match="list_candidates"):
+            alice_tools["get_candidate"](candidate="not-a-uuid")
+
+    def test_an_id_that_belongs_to_nobody_is_not_reported_as_a_missing_person(
+        self, alice_tools
+    ):
+        """Exactly what went wrong in production: a well-formed but invented UUID."""
+        with pytest.raises(ToolError) as raised:
+            alice_tools["get_candidate"](candidate="302d7759-68e8-4969-81d2-404977057e06")
+
+        message = str(raised.value)
+        assert "list_candidates" in message
+        assert "probably wrong" in message, "must blame the id, not the candidate"
+
+    def test_an_ambiguous_name_asks_rather_than_guessing(self, session, alice, alice_tools):
+        for _ in range(2):
+            session.add(Candidate(owner_id=alice.id, full_name="Jordan Avery"))
+        session.commit()
+
+        with pytest.raises(ToolError, match="matches 2 candidates"):
+            alice_tools["get_candidate"](candidate="Jordan Avery")
 
     def test_reading_a_candidate_is_audited(self, session, alice_tools, alice_candidate):
-        alice_tools["get_candidate"](candidate_id=str(alice_candidate.id))
+        alice_tools["get_candidate"](candidate=str(alice_candidate.id))
         events = session.execute(
             select(AuditEvent).where(
                 AuditEvent.resource_id == alice_candidate.id,
@@ -348,3 +382,87 @@ class TestIdsAreResolvable:
         listed = alice_tools["list_jobs"]()
         row = next(entry for entry in listed["jobs"] if entry["job_id"] == str(job.id))
         assert row["latest_screening_id"] == str(screening.id)
+
+
+class TestFindJobsForCandidate:
+    """The counterpart to match_candidates_to_job.
+
+    Without this tool the assistant could only answer "what roles suit this person"
+    by listing jobs and comparing titles by eye — which is how a lab technician got
+    offered a Fullstack Engineer role on the strength of the word "engineer".
+    """
+
+    def test_an_unscreened_candidate_reports_unscored_rather_than_no_fit(
+        self, session, alice, alice_tools, alice_candidate
+    ):
+        """The distinction the tool exists to make.
+
+        "Nobody has measured this" and "no job suits them" are different answers, and
+        only the first one is true for a candidate who has never been screened.
+        """
+        job_service.create_job(
+            session, owner_id=alice.id, title="Senior Platform Engineer", description=JOB
+        )
+
+        result = alice_tools["find_jobs_for_candidate"](str(alice_candidate.id))
+
+        assert result["returned"] == 0
+        assert result["matches"] == []
+        assert result["unscored_jobs"] == 1
+        # The note is what the model reads; it must not invite a guess from titles.
+        assert "not been screened" in result["note"]
+
+    def test_a_screened_candidate_comes_back_with_the_score_and_the_evidence(
+        self, session, alice, alice_tools, alice_candidate
+    ):
+        job = job_service.create_job(
+            session, owner_id=alice.id, title="Senior Platform Engineer", description=JOB
+        )
+        screening = matching_service.create_screening(session, job=job)
+        matching_service.run_screening(session, screening.id)
+
+        result = alice_tools["find_jobs_for_candidate"](str(alice_candidate.id))
+
+        assert result["returned"] == 1, result
+        match = result["matches"][0]
+        assert match["job_title"] == "Senior Platform Engineer"
+        assert match["job_id"] == str(job.id)
+        assert 0 <= match["score"] <= 100
+        assert match["recommendation"]
+        # The breakdown travels with the score so the model quotes the gap rather
+        # than inferring one from the job title.
+        assert match["subscores"], "no subscore breakdown returned"
+        assert "matched_skills" in match and "missing_skills" in match
+        assert result["unscored_jobs"] == 0
+
+    def test_unscored_jobs_are_counted_not_ranked_low(
+        self, session, alice, alice_tools, alice_candidate
+    ):
+        """A job with no screening must be absent and counted, never a zero — a zero
+        would read as "measured and bad"."""
+        job = job_service.create_job(
+            session, owner_id=alice.id, title="Senior Platform Engineer", description=JOB
+        )
+        job_service.create_job(
+            session, owner_id=alice.id, title="Unrelated Role", description=JOB
+        )
+        screening = matching_service.create_screening(session, job=job)
+        matching_service.run_screening(session, screening.id)
+
+        result = alice_tools["find_jobs_for_candidate"](str(alice_candidate.id))
+
+        assert result["returned"] == 1
+        assert result["unscored_jobs"] == 1
+        assert [m["job_title"] for m in result["matches"]] == ["Senior Platform Engineer"]
+
+    def test_another_recruiters_candidate_is_not_readable(
+        self, session, alice_candidate, bob
+    ):
+        bob_tools = {tool.__name__: tool for tool in build_toolset(session, bob)}
+
+        with pytest.raises(ToolError):
+            bob_tools["find_jobs_for_candidate"](str(alice_candidate.id))
+
+    def test_a_malformed_id_is_a_recoverable_tool_error(self, alice_tools):
+        with pytest.raises(ToolError):
+            alice_tools["find_jobs_for_candidate"]("the lab technician")

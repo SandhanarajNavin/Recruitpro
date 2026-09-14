@@ -321,10 +321,43 @@ class TestScoring:
         assert recommendation_for(score) == expected
 
     def test_similarity_mapping_is_bounded(self):
+        # The suite runs on the hashing embedder, whose range is 0.0 - 0.5.
         assert similarity_to_score(None) == 0.0
         assert similarity_to_score(0.0) == 0.0
         assert similarity_to_score(0.5) == pytest.approx(100.0)
         assert similarity_to_score(0.9) == 100.0, "must clamp, not exceed 100"
+
+    def test_the_mapping_follows_the_embedder_rather_than_a_fixed_scale(self, monkeypatch):
+        """The regression this exists for.
+
+        The mapping used to hard-code the hashing embedder's 0-0.5 scale. Swapping
+        the default provider to Gemini, whose cosines sit between 0.65 and 0.94, sent
+        every candidate to 100 — the category kept its full weight while telling the
+        ranking nothing. Reading the range off the embedder is what prevents a repeat.
+        """
+        from app.ai.embeddings import embedding_service
+
+        embedder = embedding_service.get_embedder()
+        monkeypatch.setattr(embedder, "similarity_floor", 0.75)
+        monkeypatch.setattr(embedder, "similarity_ceiling", 0.92)
+
+        # Values that all pinned at 100 under the old fixed scale.
+        assert similarity_to_score(0.70) == 0.0, "wrong-field cosine must not score"
+        assert similarity_to_score(0.75) == 0.0
+        assert similarity_to_score(0.835) == pytest.approx(50.0, abs=0.5)
+        assert similarity_to_score(0.92) == pytest.approx(100.0)
+        assert similarity_to_score(0.99) == 100.0
+
+    def test_an_inverted_range_scores_zero_rather_than_inventing_a_distribution(
+        self, monkeypatch
+    ):
+        from app.ai.embeddings import embedding_service
+
+        embedder = embedding_service.get_embedder()
+        monkeypatch.setattr(embedder, "similarity_floor", 0.9)
+        monkeypatch.setattr(embedder, "similarity_ceiling", 0.9)
+
+        assert similarity_to_score(0.95) == 0.0
 
     def test_every_shortlisted_candidate_is_scored_on_the_same_pool(self):
         """Scores must not depend on which other candidates are present."""

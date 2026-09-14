@@ -36,6 +36,18 @@ class Embedder(ABC):
     #: passages — and the assistant would quote them as evidence.
     min_similarity: float = 0.0
 
+    #: Cosine values mapping onto 0 and 100 for the semantic scoring category, for
+    #: the same reason as above: the usable range is a property of the embedding
+    #: space, so it has to travel with the embedder rather than sit in the scorer.
+    #:
+    #: Getting these wrong does not produce a slightly-off number, it produces no
+    #: number at all — a ceiling below where candidates actually land collapses the
+    #: whole category to 100 for everyone, which is how this started.
+    #:
+    #: Defaults describe the hashing embedder, whose cosines start at zero.
+    similarity_floor: float = 0.0
+    similarity_ceiling: float = 0.5
+
     @abstractmethod
     def embed(self, text: str) -> list[float]: ...
 
@@ -110,6 +122,13 @@ class OpenAIEmbedder(Embedder):
     #: than copied from another provider's scale.
     min_similarity: float = 0.30
 
+    #: Also unmeasured. text-embedding-3-small is roughly centred, so these are wider
+    #: and lower than Gemini's rather than borrowed from it. Measure them against
+    #: real profiles before trusting the semantic category on this provider — the
+    #: Gemini entry above is what an unmeasured range costs.
+    similarity_floor: float = 0.35
+    similarity_ceiling: float = 0.75
+
     def __init__(self) -> None:
         self.model = settings.embedding_model
         self.dim = settings.embedding_dim
@@ -162,6 +181,18 @@ class GeminiEmbedder(Embedder):
     #: Gemini embeddings are not centred on zero, so the floor sits well above 0 —
     #: retune it if the model or the output dimensionality changes.
     min_similarity: float = 0.58
+
+    #: Measured over a 5-profile x 4-job grid (profile and JD text built by the same
+    #: functions the pipeline uses). Genuine fits landed in 0.8755-0.9402; candidates
+    #: from the wrong field in 0.6566-0.7987 — separable, but nowhere near the 0-0.5
+    #: scale the hashing embedder uses. The inherited default put every one of those
+    #: pairs at 100, so a lab technician and an ideal hire scored identically here.
+    #:
+    #: The floor sits just above the wrong-field median and the ceiling at the low
+    #: end of true fits, which puts wrong-field candidates at 0-29 and real ones at
+    #: 74-100. Retune if the model or output dimensionality changes.
+    similarity_floor: float = 0.75
+    similarity_ceiling: float = 0.92
 
     def __init__(self) -> None:
         self.model = settings.embedding_model

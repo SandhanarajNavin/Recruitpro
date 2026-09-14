@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from app.ai.embeddings import get_embedder
 from app.ai.llm.evaluator import (
     CATEGORY_EXPERIENCE,
     CATEGORY_INDUSTRY,
@@ -94,16 +95,29 @@ def clamp(value: float) -> float:
 
 
 def similarity_to_score(cosine_similarity: float | None) -> float:
-    """Map a cosine similarity onto 0-100.
+    """Map a cosine similarity onto 0-100, against the active embedder's range.
 
-    Cosine over the hashing embedder lands in roughly [0, 0.6] for related documents,
-    so a naive ×100 would make every candidate look weak on this category. Anchoring
-    0.5 similarity at 100 keeps the 5% category meaningfully distributed instead of
-    compressed against zero.
+    The usable cosine range is a property of the embedding space, so the endpoints
+    live on the embedder beside ``min_similarity`` rather than being fixed here.
+    This function previously hard-coded the hashing embedder's scale — anchoring 0.5
+    at 100 — which silently broke when the default provider became Gemini: real
+    Gemini cosines sit between 0.65 and 0.94, so every candidate clamped to 100 and
+    the category stopped distinguishing anyone at all while still contributing its
+    full weight to every composite.
+
+    Reading the range from the embedder is what stops that recurring on the next
+    provider change: a new embedder has to state its own scale or inherit the base
+    class's, and either way the failure is visible rather than a silent 100.
     """
     if cosine_similarity is None:
         return 0.0
-    return clamp((cosine_similarity / 0.5) * 100.0)
+
+    embedder = get_embedder()
+    floor = embedder.similarity_floor
+    ceiling = embedder.similarity_ceiling
+    if ceiling <= floor:  # misconfigured; refuse to invent a distribution
+        return 0.0
+    return clamp((cosine_similarity - floor) / (ceiling - floor) * 100.0)
 
 
 def compute_score(

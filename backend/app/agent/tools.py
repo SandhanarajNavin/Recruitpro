@@ -65,6 +65,63 @@ class ToolError(RuntimeError):
     """Recoverable — the message goes back to the model so it can correct itself."""
 
 
+def _resolve_candidate(session: Session, owner_id: uuid.UUID, reference: str) -> Candidate:
+    """A candidate from either a UUID or a name, for read-only tools.
+
+    Models do not reproduce UUIDs reliably. Observed in a real transcript: the
+    assistant looked Kevin Thompson up, described him correctly, then on the next two
+    turns passed ids that belong to nobody — neither matched the one the lookup had
+    returned. Accepting the name removes the need to carry a 36-character random
+    string across turns at all.
+
+    Every failure here is phrased as "this lookup did not resolve", never as "no such
+    person". The model reported the old wording to the recruiter as fact and told them
+    a candidate it had just been reading was not in the repository.
+    """
+    text_reference = (reference or "").strip()
+    if not text_reference:
+        raise ToolError("Give a candidate name or id to look up.")
+
+    try:
+        candidate_id = uuid.UUID(text_reference)
+    except ValueError:
+        candidate_id = None
+
+    if candidate_id is not None:
+        candidate = session.execute(
+            select(Candidate).where(
+                Candidate.id == candidate_id, Candidate.owner_id == owner_id
+            )
+        ).scalars().first()
+        if candidate is not None:
+            return candidate
+        # An id that resolves to nothing is far more likely to be misremembered than
+        # to mean the candidate was deleted, so send the model back to a name lookup
+        # rather than letting it conclude the person is gone.
+        raise ToolError(
+            f"No candidate has the id {text_reference}. Do not tell the recruiter the "
+            "person is missing — that id is probably wrong. Call list_candidates with "
+            "their name to get the correct id, then try again."
+        )
+
+    rows, _total = candidate_service.list_candidates(
+        session, owner_id, query=text_reference, limit=MAX_ROWS, offset=0
+    )
+    if not rows:
+        raise ToolError(
+            f"Nothing in this repository matches {text_reference!r}. Try list_candidates "
+            "with a shorter or differently spelled version of the name before telling "
+            "the recruiter there is no such candidate."
+        )
+    if len(rows) > 1:
+        names = ", ".join(f"{row.full_name} ({row.id})" for row in rows[:5])
+        raise ToolError(
+            f"{text_reference!r} matches {len(rows)} candidates: {names}. "
+            "Ask the recruiter which one, or call again with the id."
+        )
+    return rows[0]
+
+
 def _profile_for(session: Session, candidate_id: uuid.UUID) -> CandidateProfile | None:
     return session.execute(
         select(CandidateProfile)
@@ -123,34 +180,29 @@ def build_toolset(session: Session, user: User) -> list[Callable[..., Any]]:
             )
         return {"total_matching": total, "returned": len(out), "candidates": out}
 
-    def get_candidate(candidate_id: str) -> dict:
+    def get_candidate(candidate: str) -> dict:
         """Full profile for one candidate: skills, experience, education, role.
 
         Args:
-            candidate_id: The candidate's UUID, as returned by list_candidates.
+            candidate: The candidate's name or their UUID. A name is fine and is
+                safer than recalling an id from earlier in the conversation — pass
+                "Kevin Thompson" rather than a UUID you are reconstructing from
+                memory. If an id does not resolve, look the name up with
+                list_candidates rather than reporting the candidate as missing.
         """
-        try:
-            cid = uuid.UUID(candidate_id)
-        except ValueError as exc:
-            raise ToolError(f"{candidate_id!r} is not a valid candidate id.") from exc
-
-        candidate = session.execute(
-            select(Candidate).where(Candidate.id == cid, Candidate.owner_id == owner_id)
-        ).scalars().first()
-        if candidate is None:
-            raise ToolError("No such candidate in this repository.")
-
+        found = _resolve_candidate(session, owner_id, candidate)
+        cid = found.id
         profile = _profile_for(session, cid)
         audit_service.record(
             session, "candidate.viewed", recruiter_id=owner_id,
             resource_type="candidate", resource_id=cid, via="assistant",
         )
         return {
-            "candidate_id": str(candidate.id),
-            "name": candidate.full_name,
-            "email": candidate.email,
-            "location": candidate.location,
-            "summary": candidate.summary,
+            "candidate_id": str(found.id),
+            "name": found.full_name,
+            "email": found.email,
+            "location": found.location,
+            "summary": found.summary,
             "current_title": profile.current_title if profile else None,
             "years": float(profile.total_years_experience or 0) if profile else 0.0,
             "primary_role": profile.primary_role if profile else None,
@@ -161,6 +213,66 @@ def build_toolset(session: Session, user: User) -> list[Callable[..., Any]]:
             "certifications": list(profile.certifications or []) if profile else [],
             "experience": list(profile.experience or []) if profile else [],
             "parsed_by": profile.parser_model if profile else None,
+        }
+
+    def find_jobs_for_candidate(candidate: str, limit: int = 5) -> dict:
+        """Which of this recruiter's jobs a candidate scores best against.
+
+        The counterpart to match_candidates_to_job, which goes the other way. Use this
+        for "what roles suit this person" — do not answer that by listing jobs and
+        comparing titles by eye, which mistakes a job whose title happens to share a
+        word for a job the candidate can actually do.
+
+        Only jobs this candidate has already been screened against have a score, and
+        `unscored_jobs` counts the ones that do not. A candidate nobody has screened
+        returns no matches and every job unscored: that means "not measured yet", not
+        "no good fit". Say so, and offer match_candidates_to_job for a specific role
+        rather than implying the list is complete.
+
+        Args:
+            candidate: The candidate's name or their UUID. A name is fine and is
+                safer than recalling an id from earlier in the conversation.
+            limit: Maximum jobs to return, at most 25.
+        """
+        found = _resolve_candidate(session, owner_id, candidate)
+
+        matches, unscored = candidate_service.top_job_matches(
+            session, found.id, owner_id, limit=min(max(limit, 1), MAX_ROWS)
+        )
+        return {
+            "candidate": found.full_name,
+            "returned": len(matches),
+            "unscored_jobs": unscored,
+            "matches": [
+                {
+                    "job_id": str(row["job_id"]),
+                    "job_title": row["job_title"],
+                    "job_status": row["job_status"],
+                    "score": row["score"],
+                    "recommendation": row["recommendation"],
+                    "screening_id": str(row["screening_id"]),
+                    # The evidence behind the number, so the model quotes the gap
+                    # rather than inferring one from the title.
+                    "matched_skills": row["matched_skills"],
+                    "missing_skills": row["missing_skills"],
+                    "subscores": [
+                        {"category": entry["label"], "score": entry["score"]}
+                        for entry in row["subscores"]
+                    ],
+                }
+                for row in matches
+            ],
+            "note": (
+                f"{found.full_name} has not been screened against any job yet, so "
+                f"there is no fit score for any of the {unscored} job(s) on the board. "
+                "Do not guess from job titles — offer to run a screening."
+                if not matches
+                else (
+                    f"Scored against {len(matches)} job(s); {unscored} other job(s) "
+                    "have never been screened against this candidate and are absent "
+                    "from this list rather than ranked low."
+                )
+            ),
         }
 
     def list_jobs(limit: int = 10) -> dict:
@@ -601,6 +713,7 @@ def build_toolset(session: Session, user: User) -> list[Callable[..., Any]]:
     return [
         list_candidates,
         get_candidate,
+        find_jobs_for_candidate,
         list_jobs,
         repository_stats,
         get_screening_results,
