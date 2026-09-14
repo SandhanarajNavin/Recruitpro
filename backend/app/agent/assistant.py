@@ -15,6 +15,7 @@ from __future__ import annotations
 import functools
 import inspect
 import uuid
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
@@ -317,3 +318,130 @@ def send(
         tool_calls=calls,
         engine=settings.recruiter_model,
     )
+
+
+#: Emitted instead of an empty reply, in both the streaming and blocking paths.
+_EMPTY_REPLY = "I ran the lookup but did not get a usable answer back. Try rephrasing?"
+
+
+def send_streaming(
+    session: Session,
+    *,
+    user: User,
+    message: str,
+    conversation_id: uuid.UUID | None = None,
+) -> Iterator[dict]:
+    """One turn, yielding the reply as it is generated.
+
+    Same model call, same tools, same persistence as :func:`send` — the difference is
+    only when the reader sees the text. A turn is 2-8 seconds of nothing on screen
+    otherwise, and the wait is the model composing prose it could have been emitting
+    all along.
+
+    Yields dicts the endpoint serialises as server-sent events:
+
+        {"type": "delta", "text": ...}   a fragment of the reply
+        {"type": "tool", "name": ...}    a tool finished, so the UI can name it
+        {"type": "done", ...}            ids and the full text, after persistence
+        {"type": "error", "message": ...} the turn failed; nothing was persisted
+
+    Persistence happens at the end, once: a half-streamed turn that the client
+    abandoned must not leave a truncated assistant message in the transcript.
+    """
+    from google.genai import types
+
+    from app.ai.llm.llm_service import _get_client
+
+    if not settings.llm_available:
+        yield {"type": "error", "message": "The assistant needs Gemini credentials."}
+        return
+
+    conversation = get_or_create_conversation(
+        session, recruiter_id=user.id, conversation_id=conversation_id
+    )
+    if not conversation.messages and not conversation.title.startswith(message[:20]):
+        conversation.title = message.strip()[:160] or "New conversation"
+
+    history = _history(session, conversation.id)
+    _record(session, conversation, role=ChatRole.USER.value, content=message)
+
+    calls: list[ToolCall] = []
+    config = types.GenerateContentConfig(
+        system_instruction=(
+            f"{SYSTEM}\n\n"
+            f"Today is {datetime.now(UTC).date().isoformat()}. "
+            f"You are assisting {user.name}."
+        ),
+        temperature=settings.llm_temperature,
+        tools=_recording_toolset(build_toolset(session, user), calls),
+        automatic_function_calling=types.AutomaticFunctionCallingConfig(
+            maximum_remote_calls=MAX_TOOL_CALLS,
+            ignore_call_history=False,
+        ),
+        thinking_config=types.ThinkingConfig(
+            thinking_budget=settings.recruiter_thinking_budget
+        ),
+    )
+
+    chat = _get_client().chats.create(
+        model=settings.recruiter_model, config=config, history=history
+    )
+
+    chunks: list[str] = []
+    announced = 0
+    try:
+        for chunk in chat.send_message_stream(message):
+            # Tools run inside the stream, so a call can complete between two text
+            # fragments. Announcing them as they land is what makes a minute-long
+            # matching run legible instead of silent.
+            while announced < len(calls):
+                yield {"type": "tool", "name": calls[announced].name}
+                announced += 1
+
+            piece = getattr(chunk, "text", None)
+            if piece:
+                chunks.append(piece)
+                yield {"type": "delta", "text": piece}
+    except Exception as exc:  # noqa: BLE001 - a failed turn must not lose the transcript
+        logger.exception("Streaming assistant turn failed")
+        text = (
+            "I could not complete that — the model call failed. "
+            "The message is saved, so you can retry it."
+        )
+        _record(session, conversation, role=ChatRole.ASSISTANT.value, content=text)
+        session.commit()
+        yield {"type": "error", "message": str(exc), "conversation_id": str(conversation.id)}
+        return
+
+    while announced < len(calls):
+        yield {"type": "tool", "name": calls[announced].name}
+        announced += 1
+
+    for call in calls:
+        _record(
+            session,
+            conversation,
+            role=ChatRole.TOOL.value,
+            content=f"Ran {call.name}",
+            tool_name=call.name,
+            tool_args=call.args,
+        )
+
+    text = "".join(chunks).strip() or _EMPTY_REPLY
+    _record(session, conversation, role=ChatRole.ASSISTANT.value, content=text)
+    session.commit()
+
+    if any(call.is_write for call in calls):
+        logger.info(
+            "Assistant performed %s write(s) for recruiter %s",
+            sum(call.is_write for call in calls), user.id,
+        )
+
+    yield {
+        "type": "done",
+        "conversation_id": str(conversation.id),
+        "text": text,
+        "tool_calls": [
+            {"name": c.name, "args": c.args, "is_write": c.is_write} for c in calls
+        ],
+    }

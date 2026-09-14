@@ -5,16 +5,20 @@
     GET  /chat/conversations/{id}     full transcript
     DELETE /chat/conversations/{id}   delete a conversation
 
-Runs synchronously. A turn that calls ``match_candidates_to_job`` can take a minute,
-which is honest rather than ideal — the alternative is a job id to poll, and a chat
-that answers later is not a chat. Streaming is the real fix and is not built yet.
+``POST /chat`` runs synchronously and returns the whole reply. ``POST /chat/stream``
+sends the same turn as server-sent events, so the reader sees prose as it is written
+instead of watching nothing for the length of the turn. Both persist identically; the
+streaming one commits only once the turn finishes, so an abandoned request cannot
+leave a truncated assistant message in the transcript.
 """
 
 from __future__ import annotations
 
+import json
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -32,6 +36,58 @@ from app.schemas import (
 )
 
 router = APIRouter(prefix="/chat", tags=["assistant"])
+
+
+def _sse(event: dict) -> str:
+    """One server-sent event. The blank line after the payload is the delimiter —
+    without it the client buffers waiting for the rest of the frame."""
+    return f"data: {json.dumps(event)}\n\n"
+
+
+@router.post("/stream")
+def stream_message(
+    body: ChatRequest,
+    user: User = Depends(current_user),
+) -> StreamingResponse:
+    """The same turn as POST /chat, streamed as server-sent events.
+
+    Deliberately takes no session dependency. FastAPI closes a dependency-provided
+    session when the endpoint function returns, which for a StreamingResponse is
+    before the generator has produced anything — so the turn would run against a
+    closed session. The generator opens and owns its own.
+    """
+
+    def events():
+        from app.db.database import session_scope
+
+        session = session_scope()
+        try:
+            owner = session.get(User, user.id)
+            for event in assistant.send_streaming(
+                session,
+                user=owner,
+                message=body.message,
+                conversation_id=body.conversation_id,
+            ):
+                yield _sse(event)
+        except LookupError:
+            yield _sse({"type": "error", "message": "Conversation not found."})
+        except Exception as exc:  # noqa: BLE001 - the stream has already started, so
+            # there is no status code left to set; the error has to travel as an event.
+            yield _sse({"type": "error", "message": str(exc)})
+        finally:
+            session.close()
+
+    return StreamingResponse(
+        events(),
+        media_type="text/event-stream",
+        headers={
+            # Without this an intermediary may buffer the whole response and deliver
+            # it at once, which is exactly the behaviour being replaced.
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @router.post("", response_model=ChatReply)

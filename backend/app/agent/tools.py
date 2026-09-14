@@ -139,14 +139,24 @@ def build_toolset(session: Session, user: User) -> list[Callable[..., Any]]:
     # ── read ─────────────────────────────────────────────────────────────
 
     def list_candidates(
-        skill: str = "", min_years: int = 0, query: str = "", limit: int = 10
+        skill: str = "",
+        location: str = "",
+        min_years: int = 0,
+        query: str = "",
+        limit: int = 10,
     ) -> dict:
         """List candidates in this recruiter's repository.
 
         Args:
             skill: Filter to candidates who have this skill, e.g. "Kubernetes".
-                Matched as a whole skill, case-insensitively — a role phrase like
-                "fullstack developer" belongs in `query`, not here.
+                Matched as a whole skill, case-insensitively, and through the skill
+                taxonomy — "React" also finds a resume that said "React.js". A role
+                phrase like "fullstack developer" belongs in `query`, not here.
+            location: Filter by where the candidate is, e.g. "Chennai". Matched as a
+                substring, so "Chennai" finds "Chennai, India". Only some candidates
+                have a location recorded; one who does not is excluded by this filter
+                rather than being unknown, so do not use it to prove nobody is in a
+                city — say how many candidates have no location if it matters.
             min_years: Minimum total years of professional experience.
             query: Free-text match against name, email, current title, primary role
                 and secondary roles. Use this for a role or job title. Spelling and
@@ -160,6 +170,7 @@ def build_toolset(session: Session, user: User) -> list[Callable[..., Any]]:
             owner_id,
             query=query or None,
             skill=skill or None,
+            location=location or None,
             min_years=min_years or None,
             limit=min(limit, MAX_ROWS),
             offset=0,

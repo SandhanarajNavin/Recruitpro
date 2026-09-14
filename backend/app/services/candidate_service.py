@@ -16,18 +16,19 @@ from difflib import SequenceMatcher
 from sqlalchemy import func, or_, select, text
 from sqlalchemy.orm import Session, aliased, selectinload
 
-from app.services.scoring import subscore_rows
 from app.db.models import (
     Candidate,
     CandidateProfile,
+    CandidateSkill,
     CandidateStatus,
     Job,
     Resume,
     ResumeStatus,
     Screening,
     ScreeningResult,
+    Skill,
 )
-
+from app.services.scoring import subscore_rows
 
 #: Titles and role labels are written inconsistently — "Full Stack Developer",
 #: "Full-Stack Developer" and "fullstack developer" are one role. Comparing with the
@@ -145,6 +146,7 @@ def list_candidates(
     *,
     query: str | None = None,
     skill: str | None = None,
+    location: str | None = None,
     min_years: float | None = None,
     status: str = CandidateStatus.ACTIVE.value,
     limit: int = 50,
@@ -223,6 +225,15 @@ def list_candidates(
         )
 
     def apply_attribute_filters(statement):
+        if location:
+            # On `candidates`, not the profile, so this needs no join and works for a
+            # candidate whose resume has not been parsed yet. Substring rather than
+            # equality because the column holds whatever the resume wrote —
+            # "Chennai, India" and "Chennai" are the same place to a recruiter.
+            statement = statement.where(
+                Candidate.location.ilike(f"%{location.strip()}%")
+            )
+
         if skill or min_years is not None:
             # Lateral join to the latest profile version only, so a candidate is never
             # matched on a skill that appears solely in an older profile.
@@ -240,17 +251,52 @@ def list_candidates(
             statement = statement.join(latest, onclause=text("true"))
 
             if skill:
+                wanted = skill.strip().lower()
+
                 # Expand the JSONB array and compare case-insensitively — "postgresql"
                 # and "PostgreSQL" are the same skill.
                 elements = func.jsonb_array_elements_text(latest.c.skills).table_valued(
                     "value", name="owned_skill"
                 )
-                statement = statement.where(
+                literal_match = (
                     select(1)
                     .select_from(elements)
-                    .where(func.lower(elements.c.value) == skill.strip().lower())
+                    .where(func.lower(elements.c.value) == wanted)
                     .exists()
                 )
+
+                # The profile stores whatever the parser called it, and the parser
+                # calls the same technology different things on different resumes:
+                # "React" on one and "React.js" on the next. Matching the raw array
+                # alone meant a recruiter searching React found six candidates in one
+                # repository and none in another, purely by resume wording.
+                #
+                # skill_normalizer already resolves both onto one canonical row —
+                # React carries "react.js" as an alias — so the canonical edge is
+                # checked as well. Kept as an OR rather than a replacement: a profile
+                # parsed before the taxonomy existed has no canonical edge yet, and
+                # must stay findable.
+                alias_values = func.jsonb_array_elements_text(Skill.aliases).table_valued(
+                    "value", name="skill_alias"
+                )
+                canonical_match = (
+                    select(1)
+                    .select_from(CandidateSkill)
+                    .join(Skill, Skill.id == CandidateSkill.skill_id)
+                    .where(
+                        CandidateSkill.candidate_id == Candidate.id,
+                        or_(
+                            func.lower(Skill.canonical_name) == wanted,
+                            select(1)
+                            .select_from(alias_values)
+                            .where(func.lower(alias_values.c.value) == wanted)
+                            .exists(),
+                        ),
+                    )
+                    .exists()
+                )
+
+                statement = statement.where(or_(literal_match, canonical_match))
 
             if min_years is not None:
                 statement = statement.where(latest.c.years >= min_years)

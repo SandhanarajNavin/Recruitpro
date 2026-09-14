@@ -10,11 +10,19 @@ from __future__ import annotations
 import uuid
 
 import pytest
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, select, text
 
 from app.core.config import settings
 from app.core.security import hash_password
-from app.db.models import Candidate, CandidateProfile, Resume, ResumeStatus, User
+from app.db.models import (
+    Candidate,
+    CandidateProfile,
+    CandidateSkill,
+    Resume,
+    ResumeStatus,
+    Skill,
+    User,
+)
 from app.services import candidate_service
 
 
@@ -182,3 +190,152 @@ class TestFuzzyFallback:
             session, repository.id, query="fulstak", min_years=99
         )
         assert total == 0
+
+
+class TestSkillSearchUsesTheTaxonomy:
+    """A recruiter typing "React" means the technology, not the exact string.
+
+    The parser labels the same skill differently depending on how each resume wrote
+    it — "React" on one, "React.js" on the next. Matching only the raw profile array
+    meant a search for React found six candidates in one repository and none in
+    another, purely by resume wording, and the assistant reported that as "no
+    candidates with React experience".
+    """
+
+    def _with_skills(self, session, owner_id, name, skills):
+        candidate = _candidate(session, owner_id, name, "Engineer", "Engineer")
+        profile = session.execute(
+            select(CandidateProfile)
+            .where(CandidateProfile.candidate_id == candidate.id)
+            .order_by(CandidateProfile.version.desc())
+        ).scalars().first()
+        profile.skills = skills
+        session.commit()
+        return candidate
+
+    def _canonical(self, session, candidate_id, canonical_name, slug, aliases):
+        skill = session.execute(
+            select(Skill).where(Skill.slug == slug)
+        ).scalars().first()
+        if skill is None:
+            skill = Skill(canonical_name=canonical_name, slug=slug, aliases=aliases)
+            session.add(skill)
+            session.flush()
+        session.add(CandidateSkill(candidate_id=candidate_id, skill_id=skill.id))
+        session.commit()
+
+    def test_an_alias_in_the_profile_is_found_by_the_canonical_name(
+        self, session, recruiter
+    ):
+        candidate = self._with_skills(session, recruiter.id, "Alias Holder", ["React.js"])
+        self._canonical(session, candidate.id, "React", "react", ["react.js"])
+
+        rows, total = candidate_service.list_candidates(session, recruiter.id, skill="React")
+
+        assert total == 1, "searching the canonical name missed a resume that used an alias"
+        assert rows[0].full_name == "Alias Holder"
+
+    def test_the_canonical_name_in_the_profile_is_found_by_an_alias(
+        self, session, recruiter
+    ):
+        candidate = self._with_skills(session, recruiter.id, "Canonical Holder", ["React"])
+        self._canonical(session, candidate.id, "React", "react", ["react.js"])
+
+        rows, total = candidate_service.list_candidates(
+            session, recruiter.id, skill="React.js"
+        )
+
+        assert total == 1
+        assert rows[0].full_name == "Canonical Holder"
+
+    def test_a_profile_with_no_taxonomy_edge_is_still_found_literally(
+        self, session, recruiter
+    ):
+        """The literal match is kept alongside the taxonomy one: a profile parsed
+        before the taxonomy existed has no canonical edge and must stay findable."""
+        self._with_skills(session, recruiter.id, "Untagged", ["Kubernetes"])
+
+        rows, total = candidate_service.list_candidates(
+            session, recruiter.id, skill="kubernetes"
+        )
+
+        assert total == 1
+        assert rows[0].full_name == "Untagged"
+
+    def test_an_unrelated_skill_still_does_not_match(self, session, recruiter):
+        candidate = self._with_skills(session, recruiter.id, "React Dev", ["React.js"])
+        self._canonical(session, candidate.id, "React", "react", ["react.js"])
+
+        _rows, total = candidate_service.list_candidates(session, recruiter.id, skill="COBOL")
+
+        assert total == 0
+
+
+class TestLocationFilter:
+    """`candidates.location` was populated and unreachable — the assistant had to
+    tell a recruiter it could not filter by location at all."""
+
+    def _at(self, session, owner_id, name, location):
+        candidate = _candidate(session, owner_id, name, "Engineer", "Engineer")
+        candidate.location = location
+        session.commit()
+        return candidate
+
+    def test_a_city_matches_as_a_substring(self, session, recruiter):
+        self._at(session, recruiter.id, "Chennai Person", "Chennai, India")
+        self._at(session, recruiter.id, "Berlin Person", "Berlin, Germany")
+
+        rows, total = candidate_service.list_candidates(
+            session, recruiter.id, location="Chennai"
+        )
+
+        assert total == 1, "a stored 'Chennai, India' must match a search for 'Chennai'"
+        assert rows[0].full_name == "Chennai Person"
+
+    def test_matching_is_case_insensitive(self, session, recruiter):
+        self._at(session, recruiter.id, "Chennai Person", "Chennai, India")
+
+        _rows, total = candidate_service.list_candidates(
+            session, recruiter.id, location="chennai"
+        )
+
+        assert total == 1
+
+    def test_a_candidate_with_no_location_is_excluded_not_included(
+        self, session, recruiter
+    ):
+        """Half this repository has no location. They are unknown, not elsewhere —
+        which is why the tool description tells the assistant not to use this filter
+        to prove nobody is in a city."""
+        self._at(session, recruiter.id, "Chennai Person", "Chennai, India")
+        _candidate(session, recruiter.id, "No Location", "Engineer", "Engineer")
+
+        _rows, total = candidate_service.list_candidates(
+            session, recruiter.id, location="Chennai"
+        )
+
+        assert total == 1
+
+    def test_location_combines_with_skill(self, session, recruiter):
+        here = self._at(session, recruiter.id, "Chennai React", "Chennai, India")
+        profile = session.execute(
+            select(CandidateProfile)
+            .where(CandidateProfile.candidate_id == here.id)
+            .order_by(CandidateProfile.version.desc())
+        ).scalars().first()
+        profile.skills = ["React"]
+        elsewhere = self._at(session, recruiter.id, "Berlin React", "Berlin, Germany")
+        other = session.execute(
+            select(CandidateProfile)
+            .where(CandidateProfile.candidate_id == elsewhere.id)
+            .order_by(CandidateProfile.version.desc())
+        ).scalars().first()
+        other.skills = ["React"]
+        session.commit()
+
+        rows, total = candidate_service.list_candidates(
+            session, recruiter.id, skill="React", location="Chennai"
+        )
+
+        assert total == 1
+        assert rows[0].full_name == "Chennai React"

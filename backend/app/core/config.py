@@ -171,7 +171,18 @@ class Settings(BaseSettings):
 
     #: Candidates evaluated concurrently. Each is an independent model call, so the
     #: funnel was spending N x latency waiting in series.
-    evaluation_concurrency: int = 6
+    #: How many candidates are evaluated against Vertex at once.
+    #:
+    #: Evaluation is the whole cost of a screening: measured at ~18s per candidate
+    #: (a 12k-token structured verdict, not thinking — that budget is 0), against
+    #: ~9s for the rerank and ~4s for the job vector. So wall time is essentially
+    #: ceil(candidates / this) * 18s, and this number sets it.
+    #:
+    #: Measured on a 17-candidate pool: 6 -> 82.5s, 12 -> 36.0s (2.3x), 20 -> 32.7s
+    #: (2.5x). No throttling or errors at any level. 12 takes nearly all the gain at
+    #: half the concurrent load of 20; above ~20 there is nothing left to win because
+    #: rerank_limit caps how many candidates are evaluated at all.
+    evaluation_concurrency: int = 12
 
     # Embeddings. The offline hashing embedder is dimension-compatible with
     # 1536-dimension hosted models, so swapping providers is a backfill rather than
@@ -206,7 +217,19 @@ class Settings(BaseSettings):
 
     # ── funnel widths (architecture doc §10) ──────────────────────────────
     retrieval_limit: int = 100
-    rerank_limit: int = 20
+    #: How many candidates reach full evaluation, and therefore what a screening
+    #: costs: evaluation is ~18s each and is the entire wall time of a run.
+    #:
+    #: The rerank orders the whole retrieved pool in a single call, so the question
+    #: is whether anyone it ranked below this line climbs into the shortlist once
+    #: fully evaluated. Measured on a 17-candidate pool: at 20 (everyone) and at 10
+    #: the shortlist was the same five people in the same order; at 6 it was the
+    #: same five, reordered. Evaluating ranks 11-17 bought nothing and cost seven
+    #: evaluations.
+    #:
+    #: Raise it for a large or uneven pool, where a candidate the rerank
+    #: underestimated is likelier to sit just below the cut.
+    rerank_limit: int = 10
     shortlist_size: int = 5
 
     weights: ScoringWeights = Field(default_factory=ScoringWeights)
