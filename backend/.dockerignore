@@ -1,0 +1,23 @@
+# The virtualenv is the big one: hundreds of megabytes of Windows-specific
+# binaries that the Linux image cannot use and reinstalls from requirements.txt
+# anyway. Without this it is uploaded as build context on every build.
+.venv
+venv
+__pycache__
+*.py[cod]
+.pytest_cache
+.ruff_cache
+.mypy_cache
+
+# Secrets and candidate documents must never enter an image layer.
+.env
+.env.*
+!.env.example
+uploads/*
+!uploads/.gitkeep
+
+.git
+.gitignore
+Dockerfile
+.dockerignore
+*.md

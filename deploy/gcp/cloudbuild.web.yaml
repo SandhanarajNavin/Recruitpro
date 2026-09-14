@@ -1,0 +1,25 @@
+# Builds the web image with the API URL baked in.
+#
+# `gcloud builds submit --tag` cannot pass --build-arg, and the frontend needs one:
+# NEXT_PUBLIC_API_URL is inlined into the client bundle by `next build` rather than
+# read at runtime, so the image is specific to the API it was built against. That is
+# the whole reason this file exists instead of a one-line --tag build.
+#
+# Invoked by deploy.sh with _API_URL and _IMAGE substituted.
+
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --build-arg
+      - NEXT_PUBLIC_API_URL=${_API_URL}
+      - --tag
+      - ${_IMAGE}
+      - .
+
+images:
+  - ${_IMAGE}
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: E2_HIGHCPU_8

@@ -35,7 +35,16 @@ USER appuser
 
 EXPOSE 8000
 
-HEALTHCHECK --interval=30s --timeout=3s --start-period=20s --retries=3 \
-    CMD curl -fsS http://localhost:8000/health || exit 1
+# Cloud Run assigns the port at runtime and routes to $PORT, so this cannot be a
+# fixed number: a container listening on 8000 while Cloud Run probes 8080 fails
+# every health check and the revision never goes live. Defaulted to 8000 so compose
+# and `docker run` are unchanged.
+ENV PORT=8000
 
-CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+HEALTHCHECK --interval=30s --timeout=3s --start-period=20s --retries=3 \
+    CMD curl -fsS "http://localhost:${PORT}/health" || exit 1
+
+# Shell form so ${PORT} expands, with exec so uvicorn replaces the shell as PID 1
+# and still receives SIGTERM — without it Cloud Run's shutdown signal goes to the
+# shell and in-flight requests are cut off instead of drained.
+CMD exec python -m uvicorn app.main:app --host 0.0.0.0 --port "${PORT}"

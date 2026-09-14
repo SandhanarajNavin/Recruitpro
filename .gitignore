@@ -23,7 +23,11 @@ venv/
 # ── local resume storage (never commit candidate files) ──
 backend/uploads/*
 !backend/uploads/.gitkeep
-storage/
+# Root-anchored on purpose. Unanchored, "storage/" matched backend/app/storage/ and
+# silently kept the whole storage package out of the repo — a clone could not import
+# app.storage at all, and gcloud builds submit inherits .gitignore when there is no
+# .gcloudignore, so the same pattern would have shipped an image without it.
+/storage/
 
 # ── editors / os ──────────────────────────────
 .DS_Store

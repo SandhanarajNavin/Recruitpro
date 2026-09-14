@@ -126,6 +126,20 @@ cd backend && .venv/Scripts/python.exe -m celery -A app.workers.celery_app.celer
 
 Set `TASK_ALWAYS_EAGER=true` to skip the queue entirely.
 
+## Deploying
+
+[`deploy/gcp`](deploy/gcp/README.md) deploys to Cloud Run — two services, Cloud SQL,
+a GCS bucket and Secret Manager, with no downloaded service account keys because
+Vertex is reached through the runtime identity.
+
+```bash
+cd deploy/gcp && ./deploy.sh all
+```
+
+No Celery worker is deployed, so ingestion runs in the upload request at roughly six
+seconds per resume. Fine for a handful of files, not for twenty — the README covers
+what adding a worker later needs.
+
 ## It runs with no API key
 
 Without credentials the system uses a deterministic engine end to end — lexicon

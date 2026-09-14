@@ -34,6 +34,9 @@ redis>=5.2
 
 # ── AI (Gemini on Vertex AI, architecture doc §16/§29) ────────────────────
 google-genai>=1.0
+# Only imported when STORAGE_BACKEND=gcs. Required for Cloud Run, where the
+# container filesystem is ephemeral and per instance.
+google-cloud-storage>=2.18
 httpx>=0.28
 
 # Golden-set format for the search-quality harness (doc §27). Already present

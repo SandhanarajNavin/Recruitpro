@@ -103,11 +103,17 @@ class Settings(BaseSettings):
     access_token_ttl_minutes: int = 60 * 12
 
     # ── storage ───────────────────────────────────────────────────────────
-    # "local" writes under storage_local_dir; "s3" uses the bucket settings.
+    # "local" writes under storage_local_dir; "s3" and "gcs" use their bucket
+    # settings. Anywhere the API and the worker are separate containers — Cloud Run
+    # included — "local" is not an option: each one gets its own ephemeral disk, so
+    # the worker looks for a file the API wrote somewhere it cannot see.
     storage_backend: str = "local"
     storage_local_dir: Path = API_ROOT / "uploads"
     s3_bucket: str | None = None
     s3_region: str | None = None
+    #: Bucket for storage_backend="gcs". Authenticates through ADC like the Gemini
+    #: client, so a Workload Identity deployment needs no key material.
+    gcs_bucket: str | None = None
     max_upload_bytes: int = 10 * 1024 * 1024
     allowed_upload_types: list[str] = Field(
         default_factory=lambda: [

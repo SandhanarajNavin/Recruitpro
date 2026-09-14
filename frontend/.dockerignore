@@ -1,0 +1,18 @@
+# Build context only. The image installs its own node_modules and builds .next
+# itself; copying the host's would be slow and can carry platform-specific
+# binaries that do not run in the container.
+node_modules
+.next
+out
+
+# Never into an image: .env.local holds local overrides, and NEXT_PUBLIC_* is
+# baked in at build time from --build-arg instead.
+.env
+.env.local
+.env.*.local
+
+.git
+.gitignore
+Dockerfile
+.dockerignore
+*.md

@@ -1,0 +1,36 @@
+# Explicit, because `gcloud builds submit` falls back to .gitignore when this file
+# is absent — and a .gitignore pattern meant for local artefacts then silently
+# removes application code from the build context. That is exactly how
+# backend/app/storage/ went missing from the repo.
+#
+# Only build inputs are excluded here. Source is never excluded.
+
+.git
+.gitignore
+
+# Dependencies the images install themselves.
+node_modules
+.next
+out
+.venv
+venv
+__pycache__
+*.py[cod]
+
+# Caches
+.pytest_cache
+.ruff_cache
+.mypy_cache
+
+# Secrets and candidate documents must not reach a build.
+.env
+.env.local
+.env.*.local
+backend/.env
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+.DS_Store
+Thumbs.db
+.idea
+.vscode
