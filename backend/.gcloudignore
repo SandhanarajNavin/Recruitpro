@@ -1,0 +1,25 @@
+# Explicit rather than relying on backend/.gitignore, which gcloud would otherwise
+# fall back to — a .gitignore is written for version control and has no reason to
+# stay aligned with what a build needs.
+
+.venv
+venv
+__pycache__
+*.py[cod]
+.pytest_cache
+.ruff_cache
+.mypy_cache
+
+# Secrets and candidate documents must not reach a build.
+.env
+.env.*
+!.env.example
+uploads/*
+!uploads/.gitkeep
+
+.git
+.gitignore
+.dockerignore
+
+.DS_Store
+Thumbs.db

@@ -9,9 +9,10 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
+from typing import Annotated
 
 from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class ScoringWeights(BaseSettings):
@@ -64,7 +65,12 @@ class Settings(BaseSettings):
     api_v1_prefix: str = "/api/v1"
     # Explicit production allowlist. Override with
     # CORS_ORIGINS="https://app.example.com" in any real deployment.
-    cors_origins: list[str] = Field(
+    # Annotated NoDecode, and it is load-bearing. pydantic-settings JSON-decodes
+    # env values for complex types *before* any validator runs, so the documented
+    # CORS_ORIGINS=https://app.example.com raised SettingsError at import and the
+    # container exited before binding a port. The _split_csv validator below could
+    # never see it. NoDecode hands the raw string over instead.
+    cors_origins: Annotated[list[str], NoDecode] = Field(
         default_factory=lambda: ["http://localhost:3000", "http://127.0.0.1:3000"]
     )
 
@@ -115,7 +121,9 @@ class Settings(BaseSettings):
     #: client, so a Workload Identity deployment needs no key material.
     gcs_bucket: str | None = None
     max_upload_bytes: int = 10 * 1024 * 1024
-    allowed_upload_types: list[str] = Field(
+    # NoDecode for the same reason as cors_origins: this shares _split_csv, so a
+    # comma-separated ALLOWED_UPLOAD_TYPES would crash identically at startup.
+    allowed_upload_types: Annotated[list[str], NoDecode] = Field(
         default_factory=lambda: [
             "application/pdf",
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

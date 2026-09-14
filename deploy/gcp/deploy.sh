@@ -85,9 +85,13 @@ phase_infra() {
 
   say "Cloud SQL (Postgres 17 + pgvector)"
   note "this takes several minutes on first create"
+  # --edition is not optional here. Postgres 17 defaults to ENTERPRISE_PLUS, which
+  # rejects every db-custom-* tier and only accepts db-perf-optimized-N-*, so the
+  # create fails on tier validation before it starts. ENTERPRISE is also the cheaper
+  # edition and the one db-f1-micro and db-g1-small exist on.
   create_ok "instance ${SQL_INSTANCE}" gcloud sql instances create "${SQL_INSTANCE}" \
-    --database-version=POSTGRES_17 --tier="${SQL_TIER}" --region="${REGION}" \
-    --storage-auto-increase --project="${PROJECT_ID}"
+    --database-version=POSTGRES_17 --edition=ENTERPRISE --tier="${SQL_TIER}" \
+    --region="${REGION}" --storage-auto-increase --project="${PROJECT_ID}"
 
   create_ok "database ${SQL_DATABASE}" gcloud sql databases create "${SQL_DATABASE}" \
     --instance="${SQL_INSTANCE}" --project="${PROJECT_ID}"
@@ -148,6 +152,22 @@ phase_iam() {
     --project="${PROJECT_ID}" --quiet >/dev/null
   note "  roles/storage.objectAdmin on gs://${BUCKET}"
   note "no keys are downloaded: Cloud Run gets these through Workload Identity"
+
+  # Cloud Build runs as the Compute Engine default service account, and on projects
+  # created since roughly 2024 that account is no longer granted the build roles
+  # automatically. Without these the very first `builds submit` fails reading back
+  # the source tarball it just uploaded — a 403 on storage.objects.get that reads
+  # like a bucket problem and is really a missing role.
+  say "Cloud Build service account"
+  local project_number cloudbuild_sa
+  project_number="$(gcloud projects describe "${PROJECT_ID}" --format='value(projectNumber)')"
+  cloudbuild_sa="${project_number}-compute@developer.gserviceaccount.com"
+  for role in roles/cloudbuild.builds.builder roles/logging.logWriter roles/artifactregistry.writer; do
+    gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+      --member="serviceAccount:${cloudbuild_sa}" --role="${role}" \
+      --condition=None --quiet >/dev/null
+    note "  ${role}"
+  done
 }
 
 phase_api() {
@@ -187,13 +207,13 @@ phase_migrate() {
       --image "${IMAGE_BASE}/api:latest" --region "${REGION}" --project "${PROJECT_ID}" \
       --service-account "${SA_EMAIL}" --set-cloudsql-instances "${SQL_CONNECTION}" \
       --set-secrets "DATABASE_URL=recruitpro-database-url:latest" \
-      --command python --args "-m,alembic,upgrade,head" >/dev/null
+      --command=python --args=-m,alembic,upgrade,head >/dev/null
   else
     gcloud run jobs create recruitpro-migrate \
       --image "${IMAGE_BASE}/api:latest" --region "${REGION}" --project "${PROJECT_ID}" \
       --service-account "${SA_EMAIL}" --set-cloudsql-instances "${SQL_CONNECTION}" \
       --set-secrets "DATABASE_URL=recruitpro-database-url:latest" \
-      --command python --args "-m,alembic,upgrade,head" >/dev/null
+      --command=python --args=-m,alembic,upgrade,head >/dev/null
   fi
   gcloud run jobs execute recruitpro-migrate --region="${REGION}" --project="${PROJECT_ID}" --wait
   note "schema is at head (this also creates the pgvector extension)"

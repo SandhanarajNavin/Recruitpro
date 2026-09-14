@@ -1,0 +1,21 @@
+# gcloud reads .gcloudignore from the *source directory* given to `builds submit`,
+# not from the repo root, and falls back to that directory's .gitignore only if this
+# file is absent. frontend/ has neither by default, so the first build uploaded
+# node_modules and .next — 84,802 files and 1.1 GiB — and gcloud crashed packing it.
+#
+# Everything excluded here is rebuilt inside the image. Source is never excluded.
+
+node_modules
+.next
+out
+
+.env
+.env.local
+.env.*.local
+
+.git
+.gitignore
+.dockerignore
+
+.DS_Store
+Thumbs.db
