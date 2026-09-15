@@ -171,6 +171,28 @@ phase_iam() {
 }
 
 phase_api() {
+  # Carry the existing CORS origin into this deploy.
+  #
+  # --set-env-vars below replaces the whole environment rather than merging, so
+  # without this every API deploy silently dropped the CORS_ORIGINS that phase_cors
+  # had added. The API stayed healthy and the browser stopped being able to call it:
+  # cors_origins fell back to its localhost default, every request from the deployed
+  # web app failed preflight, and the frontend reported it as "Cannot reach the API"
+  # — which reads like the backend is down when it is answering fine.
+  # Read back from the env list rather than a --format filter: gcloud's filter()
+  # transform rejects the two-argument form this needs and crashes outright.
+  local existing_cors
+  existing_cors="$(gcloud run services describe "${API_SERVICE}" --region="${REGION}" \
+    --project="${PROJECT_ID}" \
+    --format='value(spec.template.spec.containers[0].env)' 2>/dev/null \
+    | tr ';' '\n' | grep "'CORS_ORIGINS'" \
+    | sed -E "s/.*'value': *'([^']*)'.*/\1/" || true)"
+  if [[ -z "${existing_cors}" ]]; then
+    # First deploy, or the web app is not up yet: fall back to whatever is deployed,
+    # and leave it empty if nothing is. phase_cors sets it once the web app exists.
+    existing_cors="$(web_url 2>/dev/null || true)"
+  fi
+
   say "Building the API image"
   gcloud builds submit "${ROOT}/backend" \
     --tag "${IMAGE_BASE}/api:latest" --project="${PROJECT_ID}" --region="${REGION}"
@@ -191,8 +213,14 @@ phase_api() {
     --set-env-vars "GOOGLE_GENAI_USE_VERTEXAI=true,GOOGLE_CLOUD_PROJECT=${PROJECT_ID},GOOGLE_CLOUD_LOCATION=${REGION}" \
     --set-env-vars "EMBEDDING_PROVIDER=gemini" \
     --set-env-vars "TASK_ALWAYS_EAGER=true" \
+    --set-env-vars "CORS_ORIGINS=${existing_cors}" \
     --set-secrets "DATABASE_URL=recruitpro-database-url:latest,JWT_SECRET=recruitpro-jwt-secret:latest"
 
+  if [[ -n "${existing_cors}" ]]; then
+    note "kept CORS_ORIGINS=${existing_cors}"
+  else
+    note "CORS_ORIGINS is empty — run ./deploy.sh cors once the web app is deployed"
+  fi
   note "API: $(api_url)"
   note "TASK_ALWAYS_EAGER=true because no worker is deployed — ingestion runs in the"
   note "upload request at roughly 6s per resume. See the README before bulk uploading."
